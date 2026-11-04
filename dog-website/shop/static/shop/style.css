@@ -139,7 +139,17 @@ h1 { font-size: clamp(58px, 6.8vw, 103px); line-height: 1.02; margin: 24px 0 27p
 .ticker { overflow: hidden; padding: 23px 0; }
 .ticker-track { display: flex; width: max-content; animation: ticker-scroll 32s linear infinite; }
 .ticker-group { display: flex; align-items: center; flex-shrink: 0; gap: 42px; padding-right: 42px; font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: -.3px; }
-.ticker-group span:nth-child(even) { font-size: 28px; line-height: 1; }
+.ticker-paw { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex: 0 0 30px; line-height: 1; transform: rotate(-8deg); }
+.ticker-paw:nth-of-type(4n) { transform: rotate(8deg); }
+.ticker-paw .icon { width: 27px; height: 27px; fill: currentColor; filter: drop-shadow(0 1px 0 #30253918); }
+.ticker-paw.paw-coral { color: #c84361; }
+.ticker-paw.paw-yellow { color: #f8d85b; }
+.ticker-paw.paw-lavender { color: #9b7fc1; }
+.ticker-paw.paw-mint { color: #58a88f; }
+.ticker-group:nth-child(2) .paw-coral { color: #527ea3; }
+.ticker-group:nth-child(2) .paw-yellow { color: #c84361; }
+.ticker-group:nth-child(2) .paw-lavender { color: #f8d85b; }
+.ticker-group:nth-child(2) .paw-mint { color: #9b7fc1; }
 .motion-button { position: absolute; right: 15px; bottom: -15px; z-index: 2; background: var(--cream); border: 1px solid var(--ink); border-radius: 25px; padding: 7px 13px; min-height: 36px; font-size: 10px; display: flex; gap: 9px; align-items: center; }
 .motion-button:hover { background: var(--yellow); }
 
