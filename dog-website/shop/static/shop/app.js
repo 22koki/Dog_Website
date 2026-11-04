@@ -35,6 +35,16 @@
   const productAlt = product => productPhotoDescriptions.get(resolvedImage(product.image)) || 'Product image: ' + product.name;
   const icon = name => '<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-' + name + '"/></svg>';
   const stockLimit = product => Math.min(99, Math.max(0, Number(product.stock) || 0));
+  const freeDeliveryGoal = 5000;
+  const productProfiles = {
+    food: {sizes:['small','medium','large'], stages:['puppy','adult','senior'], detail:'A balanced everyday option for routine feeding. Check the final pack label for ingredients, feeding guidance and any dietary restrictions.'},
+    toys: {sizes:['small','medium','large'], stages:['puppy','adult'], detail:'Built for supervised play. Choose a toy that matches your dog’s size, chewing style and play habits.'},
+    accessories: {sizes:['small','medium','large'], stages:['puppy','adult','senior'], detail:'Designed for everyday outings with comfort and practical handling in mind.'},
+    care: {sizes:['small','medium','large'], stages:['puppy','adult','senior'], detail:'Comfort-first essentials for rest, feeding and everyday care.'}
+  };
+  const productSizeTags = product => productProfiles[product.category]?.sizes || ['small','medium','large'];
+  const productStageTags = product => productProfiles[product.category]?.stages || ['adult'];
+  const matchesPrice = (product, value) => value === 'all' || (value === 'under1000' && Number(product.price) < 1000) || (value === '1000to2500' && Number(product.price) >= 1000 && Number(product.price) <= 2500) || (value === 'over2500' && Number(product.price) > 2500);
 
   function readStored(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
@@ -124,9 +134,15 @@
 
   function renderProducts() {
     const query = $('#search').value.toLowerCase().trim();
+    const size = $('#size-filter').value;
+    const stage = $('#stage-filter').value;
+    const price = $('#price-filter').value;
     let list = products.filter(product =>
       (filter === 'all' || (filter === 'saved' ? favorites.has(product.id) : product.category === filter)) &&
-      (product.name + ' ' + product.description + ' ' + (categoryNames[product.category] || '')).toLowerCase().includes(query)
+      (product.name + ' ' + product.description + ' ' + (categoryNames[product.category] || '')).toLowerCase().includes(query) &&
+      (size === 'all' || productSizeTags(product).includes(size)) &&
+      (stage === 'all' || productStageTags(product).includes(stage)) &&
+      matchesPrice(product, price)
     );
     const sort = $('#sort').value;
     if (sort !== 'featured') list.sort((a, b) => (sort === 'low' ? 1 : -1) * (Number(a.price) - Number(b.price)));
@@ -178,6 +194,9 @@
   function resetShop() {
     $('#search').value = '';
     $('#sort').value = 'featured';
+    $('#size-filter').value = 'all';
+    $('#stage-filter').value = 'all';
+    $('#price-filter').value = 'all';
     setFilter('all');
     $('#search').focus({preventScroll: true});
   }
@@ -227,6 +246,13 @@
       '<div class="cart-empty">' + icon('bag') + '<h3>A little room for happy.</h3><p>Your bag is empty. Let’s find something that makes their tail wag.</p><button class="button dark" data-continue-shopping>Explore the good stuff ' + icon('arrow') + '</button></div>';
 
     $('#cart-total').textContent = money(total);
+    $('#checkout-total').textContent = money(total);
+    const remaining = Math.max(0, freeDeliveryGoal - total);
+    $('#shipping-progress-copy').textContent = total >= freeDeliveryGoal ? 'Unlocked 🎉' : money(remaining) + ' to go';
+    $('#shipping-progress-bar').style.width = Math.min(100, (total / freeDeliveryGoal) * 100) + '%';
+    const cartIds = new Set(entries.map(([id]) => Number(id)));
+    const recs = products.filter(product => !cartIds.has(product.id) && stockLimit(product) > 0).slice(0, 2);
+    $('#cart-recommendations').innerHTML = entries.length && recs.length ? '<span class="eyebrow">YOU MAY ALSO LIKE</span><div class="recommendation-row">' + recs.map(product => '<button class="recommendation-card" data-add="' + product.id + '"><img src="' + esc(img(product.image)) + '" alt=""><span><strong>' + esc(product.name) + '</strong><small>' + money(product.price) + '</small></span>' + icon('plus') + '</button>').join('') + '</div>' : '';
     $('#checkout').hidden = entries.length === 0;
     $('#checkout').disabled = orderPending;
     if (!entries.length) $('#order-form').hidden = true;
@@ -279,13 +305,17 @@
     const product = productById.get(id);
     if (!product) return;
     const available = stockLimit(product) > 0;
+    const profile = productProfiles[product.category] || productProfiles.care;
+    const related = products.filter(entry => entry.id !== product.id && entry.category === product.category).slice(0, 2);
     $('#product-detail').innerHTML =
-      '<div class="product-detail-image"><img src="' + esc(img(product.image)) + '" alt="' + esc(productAlt(product)) + '" width="1200" height="800"></div>' +
-      '<div class="product-detail-meta"><div><span class="product-category">' + esc(categoryNames[product.category] || product.category) + '</span><h2 id="product-title" tabindex="-1">' + esc(product.name) + '</h2></div><span class="price">' + money(product.price) + '</span></div>' +
-      '<p class="product-detail-copy">' + esc(product.description) + '</p>' +
-      '<p class="stock-note' + (available ? '' : ' sold-out') + '">' + (available ? 'Listed in stock · final availability confirmed by the shop' : 'Currently sold out') + '</p>' +
-      '<div class="product-detail-actions"><button class="button dark" data-add="' + product.id + '"' + (available ? '' : ' disabled') + '>' + icon('plus') + (available ? 'Add to happy bag' : 'Sold out') + '</button>' + saveButton(product) + '</div>' +
-      '<p class="sample-note">Sample listing with a representative product photograph. The shop confirms the item, availability and delivery before payment.</p>';
+      '<div class="product-detail-layout"><div><div class="product-detail-image"><img src="' + esc(img(product.image)) + '" alt="' + esc(productAlt(product)) + '" width="1200" height="800"></div><div class="detail-thumbs"><button class="active"><img src="' + esc(img(product.image)) + '" alt=""></button><button><img src="' + esc(img(product.image)) + '" alt=""></button><button><img src="' + esc(img(product.image)) + '" alt=""></button></div></div><div>' +
+      '<div class="product-detail-meta"><div><span class="product-category">' + esc(categoryNames[product.category] || product.category) + '</span><h2 id="product-title" tabindex="-1">' + esc(product.name) + '</h2><div class="mini-rating">★★★★★ <span>Demo rating · 4.8</span></div></div><span class="price">' + money(product.price) + '</span></div>' +
+      '<p class="product-detail-copy">' + esc(product.description) + '</p><p class="product-detail-copy">' + esc(profile.detail) + '</p>' +
+      '<div class="product-specs"><span><b>Dog size</b>' + profile.sizes.map(x => esc(x)).join(', ') + '</span><span><b>Life stage</b>' + profile.stages.map(x => esc(x)).join(', ') + '</span><span><b>Stock</b>' + stockLimit(product) + ' listed</span><span><b>Delivery</b>Confirmed after request</span></div>' +
+      '<p class="stock-note' + (available ? '' : ' sold-out') + '">' + (available ? 'In stock · final availability confirmed by the shop' : 'Currently sold out') + '</p>' +
+      '<div class="product-detail-actions"><button class="button dark" data-add="' + product.id + '"' + (available ? '' : ' disabled') + '>' + icon('plus') + (available ? 'Add to happy bag' : 'Sold out') + '</button>' + saveButton(product) + '</div></div></div>' +
+      (related.length ? '<div class="related-products"><span class="eyebrow">PAIRS WELL WITH</span><div>' + related.map(entry => '<button data-product="' + entry.id + '"><img src="' + esc(img(entry.image)) + '" alt=""><span><strong>' + esc(entry.name) + '</strong><small>' + money(entry.price) + '</small></span></button>').join('') + '</div></div>' : '') +
+      '<p class="sample-note">Sample listing with representative photography and demo ratings. Replace with verified product specifications, images and reviews before launch.</p>';
     openDialog($('#product-dialog'), '#product-title');
   }
 
@@ -302,11 +332,12 @@
     const dog = dogs.find(entry => entry.id === id);
     if (!dog) return;
     enquirySession++;
+    const puppy = /month/i.test(dog.age);
     $('#dog-detail').innerHTML =
-      '<img class="detail-photo" src="' + esc(img(dog.image)) + '" alt="' + esc('Illustrative photo for ' + dog.name + '’s sample profile') + '">' +
-      '<h2 class="detail-title" id="dog-title" tabindex="-1">Hello, I’m ' + esc(dog.name) + '.</h2>' +
-      '<div class="detail-meta"><span>' + esc(dog.breed) + '</span><span>' + esc(dog.age) + '</span><span>' + money(dog.price) + '</span></div>' +
-      '<p>' + esc(dog.description) + '</p><p class="sample-note">This is a sample profile with an illustrative photo. Arrange a meeting and verify the seller, health records and living conditions before making a commitment.</p>';
+      '<div class="dog-detail-hero"><img class="detail-photo" src="' + esc(img(dog.image)) + '" alt="' + esc('Illustrative photo for ' + dog.name + '’s sample profile') + '"><div><span class="eyebrow">MEET YOUR MAYBE-BEST-FRIEND</span><h2 class="detail-title" id="dog-title" tabindex="-1">Hello, I’m ' + esc(dog.name) + '.</h2><div class="detail-meta"><span>' + esc(dog.breed) + '</span><span>' + esc(dog.age) + '</span><span>' + money(dog.price) + '</span></div><p>' + esc(dog.description) + '</p></div></div>' +
+      '<div class="dog-facts"><span><b>Energy</b>' + (puppy ? 'Playful / high' : 'Moderate') + '</span><span><b>Home fit</b>Discuss at meet-and-greet</span><span><b>With children</b>Verify individually</span><span><b>With dogs</b>Verify individually</span><span><b>Vaccinations</b>Request records</span><span><b>Location</b>Confirm with seller</span></div>' +
+      '<div class="meeting-note">' + icon('heart') + '<span><strong>Meet first. Decide second.</strong> Ask for vaccination/deworming records, health history, temperament information and the dog’s living conditions.</span></div>' +
+      '<p class="sample-note">This is a sample profile with an illustrative photo. Health and compatibility fields are prompts to verify, not claims about this dog.</p>';
     $('#enquiry-form').reset();
     $('#enquiry-form').hidden = false;
     $('#enquiry-form button[type="submit"]').disabled = false;
@@ -476,6 +507,9 @@
 
   $('#search').addEventListener('input', renderProducts);
   $('#sort').addEventListener('change', renderProducts);
+  $('#size-filter').addEventListener('change', renderProducts);
+  $('#stage-filter').addEventListener('change', renderProducts);
+  $('#price-filter').addEventListener('change', renderProducts);
   $('#reset-shop').addEventListener('click', resetShop);
   $('#open-saved').addEventListener('click', () => goToShop('saved'));
   $('#open-cart').addEventListener('click', () => {
@@ -483,9 +517,22 @@
     if (!orderPending) $('#order-form').hidden = true;
     openDialog($('#cart-dialog'), '#cart-title');
   });
+  function syncDeliveryChoice() {
+    const pickup = $('#delivery-method').value === 'pickup';
+    const address = $('#address-label textarea');
+    $('#address-label').hidden = pickup;
+    address.required = !pickup;
+    if (pickup && !address.value.trim()) address.value = 'Store pickup';
+    if (!pickup && address.value === 'Store pickup') address.value = '';
+    const cod = $('#order-form input[value="cod"]');
+    cod.disabled = pickup;
+    if (pickup && cod.checked) $('#order-form input[value="pickup"]').checked = true;
+  }
+  $('#delivery-method').addEventListener('change', syncDeliveryChoice);
   $('#checkout').addEventListener('click', () => {
     if (orderPending) return;
     $('#order-form').hidden = false;
+    syncDeliveryChoice();
     setMessage($('#order-message'), '');
     $('#order-form input').focus();
   });
