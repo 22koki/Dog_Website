@@ -7,6 +7,7 @@ A playful Django storefront for dogs and their people: dog profiles, food, toys,
 - Oversized headlines, a layered dog-photo hero, clickable portrait selectors and a small “boop the snoot” interaction.
 - Photograph-led category tiles, a walk-and-wag feature, a plum dog showcase and a scrollable photo moodboard on phones.
 - Product search, category, dog-size, life-stage and price controls, richer product details, related-product suggestions, saved favourites and a persistent shopping bag. Favourites and the bag are saved in this browser; no account is required.
+- An interactive Build My Dog Box experience lets shoppers choose food, play, care and walk items, see a live total, use a Surprise Me picker, persist the box locally and add the completed bundle to the existing bag in one click.
 - Richer sample dog profiles with compatibility/health verification prompts, plus detailed enquiry dialogs.
 - A cart free-delivery progress meter, add-on recommendations and a checkout request flow with delivery/pickup and payment-preference choices.
 - Clearly labelled demo review cards for storefront design; replace them with verified customer reviews before launch.
