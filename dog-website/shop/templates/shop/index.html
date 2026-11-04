@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=4">
-  <script defer src="{% static 'shop/app.js' %}?v=3"></script>
+  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=5">
+  <script defer src="{% static 'shop/app.js' %}?v=5"></script>
 </head>
 <body data-static-root="{% get_static_prefix %}">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -123,7 +123,12 @@
         </div>
         <div class="search-sort">
           <label class="search"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><input id="search" type="search" placeholder="Sniff something out…" aria-label="Search products"></label>
-          <label class="sort-label"><span>Sort by</span><select id="sort"><option value="featured">Featured</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select></label>
+          <div class="advanced-filters">
+            <label><span>Dog size</span><select id="size-filter"><option value="all">Any size</option><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></label>
+            <label><span>Life stage</span><select id="stage-filter"><option value="all">Any age</option><option value="puppy">Puppy</option><option value="adult">Adult</option><option value="senior">Senior</option></select></label>
+            <label><span>Price</span><select id="price-filter"><option value="all">Any price</option><option value="under1000">Under KSh 1,000</option><option value="1000to2500">KSh 1,000–2,500</option><option value="over2500">KSh 2,500+</option></select></label>
+            <label class="sort-label"><span>Sort by</span><select id="sort"><option value="featured">Featured</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select></label>
+          </div>
         </div>
       </div>
       <p id="shop-status" class="shop-status" aria-live="polite"></p>
@@ -131,6 +136,15 @@
       <div class="empty-state" id="empty-products" hidden><svg class="icon" aria-hidden="true"><use href="#i-paw"/></svg><h3>Nothing sniffed out. Yet.</h3><p id="empty-message">Try another search, or explore the whole collection.</p><button id="reset-shop" class="button dark">Show all the good stuff <svg class="icon" aria-hidden="true"><use href="#i-right"/></svg></button></div>
       <p class="sample-note">Sample collection · Real product photographs represent the sample listings. Prices and final items are confirmed by the shop.</p>
       <noscript><p class="notice">Enable JavaScript to browse the catalogue, use the shopping bag and send enquiries.</p></noscript>
+    </section>
+
+    <section class="wrap reviews-section" aria-labelledby="reviews-title">
+      <div class="section-heading"><div><span class="eyebrow">DEMO SOCIAL PROOF</span><h2 id="reviews-title">Happy dogs.<br><span class="serif-accent">Happy humans.</span></h2></div><p>Illustrative reviews for the storefront design.<br>Replace with verified customer feedback before launch.</p></div>
+      <div class="review-grid">
+        <article class="review-card"><div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div><p>“The leash feels sturdy and the whole order experience was ridiculously cute.”</p><div><strong>Amina & Koko</strong><span>Demo review · Nairobi</span></div></article>
+        <article class="review-card featured-review"><div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div><p>“My dog claimed the bed before I even finished unpacking it. That says enough.”</p><div><strong>Brian & Luna</strong><span>Demo review · Kiambu</span></div></article>
+        <article class="review-card"><div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div><p>“Easy to browse, easy to add to bag, and the product photos actually helped me choose.”</p><div><strong>Njeri & Max</strong><span>Demo review · Nairobi</span></div></article>
+      </div>
     </section>
 
     <section class="wrap adventure-section" aria-labelledby="adventure-title">
@@ -171,10 +185,30 @@
   <dialog id="cart-dialog" class="cart-dialog" aria-labelledby="cart-title">
     <div class="dialog-top"><div><span class="eyebrow">EXCELLENT TASTE, HUMAN.</span><h2 id="cart-title" tabindex="-1">Your happy bag<span>.</span></h2></div><button class="icon-button" data-close aria-label="Close shopping bag"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
     <div id="cart-items"></div>
+    <div class="shipping-progress"><div><span>Free delivery goal</span><strong id="shipping-progress-copy"></strong></div><div class="shipping-track"><span id="shipping-progress-bar"></span></div></div>
     <div class="cart-total"><span>Subtotal</span><strong id="cart-total"></strong></div>
-    <p class="muted">The shop confirms delivery and availability. No payment is collected here.</p>
-    <button class="button dark full" id="checkout">Request this order <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-    <form id="order-form" hidden><h3>A little about you.</h3><label>Your name<input name="name" required maxlength="100" autocomplete="name"></label><label>Email<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label>Phone<input name="phone" type="tel" required maxlength="30" autocomplete="tel"></label><label>Delivery address<textarea name="address" required maxlength="600" autocomplete="street-address"></textarea></label><button class="button dark full" type="submit">Send order request <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button></form>
+    <div id="cart-recommendations" class="cart-recommendations"></div>
+    <p class="muted">Availability and delivery are confirmed by the shop. Payment is not taken automatically.</p>
+    <button class="button dark full" id="checkout">Continue to checkout <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+    <form id="order-form" hidden>
+      <h3>Checkout details.</h3>
+      <div class="checkout-grid">
+        <label>Your name<input name="name" required maxlength="100" autocomplete="name"></label>
+        <label>Email<input name="email" type="email" required maxlength="254" autocomplete="email"></label>
+        <label>Phone<input name="phone" type="tel" required maxlength="30" autocomplete="tel"></label>
+        <label>Delivery method<select name="delivery_method" id="delivery-method"><option value="delivery">Delivery</option><option value="pickup">Store pickup</option></select></label>
+      </div>
+      <label id="address-label">Delivery address<textarea name="address" required maxlength="600" autocomplete="street-address"></textarea></label>
+      <fieldset class="payment-options"><legend>How would you like to pay?</legend>
+        <label><input type="radio" name="payment_method" value="mpesa" checked><span><strong>M-PESA</strong><small>Pay after the shop confirms stock and delivery.</small></span></label>
+        <label><input type="radio" name="payment_method" value="cod"><span><strong>Cash on delivery</strong><small>Available for delivery orders.</small></span></label>
+        <label><input type="radio" name="payment_method" value="pickup"><span><strong>Pay on pickup</strong><small>Choose this when collecting your order.</small></span></label>
+      </fieldset>
+      <label>Order notes (optional)<textarea name="notes" maxlength="600" placeholder="Gate, landmark, dog-specific request…"></textarea></label>
+      <div class="checkout-summary"><span>Order subtotal</span><strong id="checkout-total"></strong></div>
+      <button class="button dark full" type="submit">Place order request <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      <p class="muted checkout-note">M-PESA is currently a payment preference only. No STK push is sent until live payment credentials and callbacks are configured.</p>
+    </form>
     <p class="form-message" id="order-message" role="status"></p>
     <div class="dialog-toast" role="status"></div>
   </dialog>
