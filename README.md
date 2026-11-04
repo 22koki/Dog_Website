@@ -12,6 +12,8 @@ A playful Django storefront for dogs and their people: dog profiles, food, toys,
 - A cart free-delivery progress meter, add-on recommendations and a checkout request flow with delivery/pickup and payment-preference choices.
 - Clearly labelled demo review cards for storefront design; replace them with verified customer reviews before launch.
 - Responsive mobile navigation and accessible dialogs throughout.
+- Private order tracking using both the `GDC-xxxxx` reference and the order email, with a visual status timeline from requested through delivery/completion.
+- Optional WhatsApp contact links driven by the `GOOD_DOG_WHATSAPP_NUMBER` environment variable. WhatsApp opens with useful prefilled context; the Django server does not claim to send messages itself.
 - Source-linked fun facts and a three-question personality quiz with a back button and a matching collection.
 - Keyboard navigation, named native dialogs, focus restoration and a motion-pause control. Device reduced-motion preferences take priority.
 
@@ -37,7 +39,7 @@ Create a staff login using manage.py createsuperuser, then manage products, dogs
 
 Seeded listings, prices and dog profiles are samples. The real product photographs are representative images for the sample catalogue. Replace the listings and photographs with your actual inventory before launch. The repeatable seed command preserves existing entries.
 
-Orders are requests awaiting staff confirmation. Prices are calculated by the server. Customers can choose delivery or pickup and select M-PESA-after-confirmation, cash-on-delivery or pay-on-pickup where appropriate. These are payment preferences only: the site does not send an M-PESA STK push, reserve inventory, charge money or automatically send notifications. Staff must confirm availability, delivery and payment. Dog enquiries are saved for staff review.
+Orders are requests awaiting staff confirmation. Staff can move them through Requested, Confirmed, Preparing, Out for delivery, Completed or Cancelled, and customers can check the current status with their reference plus order email. Prices are calculated by the server. Customers can choose delivery or pickup and select M-PESA-after-confirmation, cash-on-delivery or pay-on-pickup where appropriate. These are payment preferences only: the site does not send an M-PESA STK push, reserve inventory, charge money or automatically send notifications. Staff must confirm availability, delivery and payment. Dog enquiries are saved for staff review.
 
 ## Validation
 
@@ -68,3 +70,14 @@ Carousel entries include a source link to the underlying guidance:
 - [AKC: why dogs sniff](https://www.akc.org/expert-advice/advice/why-does-my-dog-sniff-everything/)
 - [American College of Veterinary Ophthalmologists: canine colour vision](https://www.acvo.org/tips-treatments-tricks/vision-in-pets)
 - [Dogs Trust: tail signals, body language and the play bow](https://www.dogstrust.org.uk/dog-advice/understanding-your-dog/body-language)
+
+
+## WhatsApp contact
+
+Set the public business number in international digits without a plus sign, spaces or dashes:
+
+```powershell
+$env:GOOD_DOG_WHATSAPP_NUMBER="2547XXXXXXXX"
+```
+
+Then start Django normally. When the variable is present, the storefront shows a WhatsApp contact button and order-specific WhatsApp links. The links open WhatsApp with a prefilled message; they do not send anything automatically.
