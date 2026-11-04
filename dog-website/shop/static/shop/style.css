@@ -143,7 +143,7 @@ h1 { font-size: clamp(58px, 6.8vw, 103px); line-height: 1.02; margin: 24px 0 27p
 .motion-button { position: absolute; right: 15px; bottom: -15px; z-index: 2; background: var(--cream); border: 1px solid var(--ink); border-radius: 25px; padding: 7px 13px; min-height: 36px; font-size: 10px; display: flex; gap: 9px; align-items: center; }
 .motion-button:hover { background: var(--yellow); }
 
-/* Collection tiles use lifestyle photographs alongside the sample packshots. */
+/* Real product photographs lead each collection. */
 .categories-section { padding-top: 89px; padding-bottom: 75px; }
 .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 35px; margin-bottom: 34px; }
 .section-heading .eyebrow { margin-bottom: 14px; }
@@ -157,11 +157,11 @@ h1 { font-size: clamp(58px, 6.8vw, 103px); line-height: 1.02; margin: 24px 0 27p
 .collection-care { background: var(--mint); }
 .collection-top { display: flex; align-items: center; justify-content: space-between; gap: 5px; font-size: 9px; font-weight: 700; letter-spacing: .5px; }
 .collection-top .icon { width: 24px; height: 24px; }
-.collection-art { height: 195px; position: relative; margin: 16px -8px 18px; }
-.collection-dog { height: 178px; width: 78%; max-width: 192px; object-fit: cover; object-position: center 45%; border-radius: 46% 46% 20% 20%; transform: rotate(-5deg); margin: auto; transition: transform .4s; }
-.collection-object { position: absolute; bottom: -25px; right: -22px; width: 135px; height: 135px; object-fit: contain; transform: rotate(12deg); filter: drop-shadow(2px 7px 5px #30253922); transition: transform .4s; }
-.collection-card:hover .collection-dog { transform: rotate(2deg) scale(1.04); }
-.collection-card:hover .collection-object { transform: rotate(-5deg) translateY(-5px); }
+.collection-photo { height: 195px; margin: 17px -7px 20px; border-radius: 15px; overflow: hidden; background: #ffffff55; }
+.collection-photo img { height: 100%; width: 100%; object-fit: cover; transition: transform .45s ease; }
+.collection-card:hover .collection-photo img { transform: scale(1.045); }
+.collection-toys .collection-photo img { object-position: 44% 60%; }
+.collection-walk .collection-photo img { object-fit: contain; background: #f14140; }
 .collection-card h3 { font-size: 25px; letter-spacing: -.055em; margin-bottom: 8px; }
 .collection-card p { margin: 0; font-size: 12px; line-height: 1.45; }
 
@@ -186,13 +186,13 @@ h1 { font-size: clamp(58px, 6.8vw, 103px); line-height: 1.02; margin: 24px 0 27p
 .product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; }
 .product-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); min-width: 0; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease; }
 .product-card:hover { transform: translateY(-5px); box-shadow: 0 16px 30px #3025390a; }
-.product-image { height: 285px; position: relative; background: #f3e8d4; overflow: hidden; }
+.product-image { aspect-ratio: 4 / 3; position: relative; background: #f3e8d4; overflow: hidden; }
 .product-card[data-product-category="toys"] .product-image { background: #ede4f5; }
 .product-card[data-product-category="accessories"] .product-image { background: #e0edf0; }
 .product-card[data-product-category="care"] .product-image { background: #e9efdc; }
-.product-photo-button { display: block; width: 100%; height: 100%; padding: 14px; background: transparent; }
-.product-photo-button img { width: 100%; height: 100%; object-fit: contain; transition: transform .45s ease; }
-.product-card:hover .product-photo-button img { transform: rotate(-6deg) scale(1.06); }
+.product-photo-button { display: block; position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; background: transparent; }
+.product-photo-button img { width: 100%; height: 100%; object-fit: cover; transition: transform .45s ease; }
+.product-card:hover .product-photo-button img { transform: scale(1.045); }
 .product-photo-button:focus-visible { outline-offset: -8px; }
 .badge { display: inline-flex; align-items: center; position: absolute; top: 16px; left: 16px; z-index: 2; max-width: calc(100% - 80px); background: var(--cream); border-radius: 30px; padding: 8px 11px; font-size: 10px; font-weight: 600; line-height: 1.3; pointer-events: none; }
 .save-product { position: absolute; top: 12px; right: 12px; z-index: 3; background: #fffaf1ee; border-color: #30253914; }
@@ -369,7 +369,7 @@ form textarea { min-height: 105px; resize: vertical; }
 .detail-meta span { border-radius: 100px; padding: 7px 12px; font-size: 12px; background: #ede5f3; }
 #dog-detail > p { font-size: 14px; }
 #dog-detail > .sample-note { font-size: 12px; padding: 14px; background: #f0e8db; border-radius: 12px; }
-.product-detail-image { height: 280px; border-radius: 18px; background: #efe5f4; }
+.product-detail-image { height: 320px; border-radius: 18px; overflow: hidden; background: #f1ede7; }
 .product-detail-image img { width: 100%; height: 100%; object-fit: contain; }
 .product-detail-meta { display: flex; justify-content: space-between; gap: 20px; align-items: start; margin-top: 22px; }
 .product-detail-meta h2 { font-size: 34px; }
@@ -424,14 +424,11 @@ form textarea { min-height: 105px; resize: vertical; }
   .club-sticker .icon { width: 28px; height: 28px; }
   .collection-card { padding: 18px; }
   .collection-card h3 { font-size: 22px; }
-  .collection-art { height: 170px; }
-  .collection-dog { height: 155px; }
-  .collection-object { width: 115px; height: 115px; }
+  .collection-photo { height: 170px; }
   .collection-card p { font-size: 11px; }
   .collection-top { font-size: 8px; }
   .product-body { padding: 18px; }
   .product-meta { flex-direction: column; gap: 5px; }
-  .product-image { height: 245px; }
   .product-meta h3 { font-size: 19px; }
   .product-actions { gap: 6px; }
   .add-button { padding-inline: 12px; font-size: 11px; }
@@ -470,15 +467,12 @@ form textarea { min-height: 105px; resize: vertical; }
   .portrait-picker > span { font-size: 9px; margin-right: 4px; }
   .collections-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .collection-card { padding: 22px; }
-  .collection-art { height: 210px; }
-  .collection-dog { height: 195px; max-width: 205px; }
-  .collection-object { width: 145px; height: 145px; right: 0; }
+  .collection-photo { height: 210px; }
   .collection-top { font-size: 10px; }
   .collection-card h3 { font-size: 27px; }
   .collection-card p { font-size: 13px; }
   .section-heading > p { font-size: 12px; }
   .product-grid { gap: 16px; }
-  .product-image { height: 215px; }
   .product-body { padding: 15px; }
   .product-description { min-height: 64px; font-size: 12px; }
   .product-actions { flex-direction: column-reverse; gap: 0; }
@@ -568,9 +562,7 @@ form textarea { min-height: 105px; resize: vertical; }
   .collection-card { padding: 15px 13px 19px; border-radius: 17px; }
   .collection-top { font-size: 9px; letter-spacing: .1px; gap: 3px; line-height: 1.4; }
   .collection-top .icon { width: 18px; height: 18px; }
-  .collection-art { height: 155px; margin: 12px -6px 10px; }
-  .collection-dog { height: 143px; width: 82%; }
-  .collection-object { width: 105px; height: 105px; right: -13px; bottom: -18px; }
+  .collection-photo { height: 155px; margin: 12px -6px 15px; }
   .collection-card h3 { font-size: 22px; margin-bottom: 7px; }
   .collection-card p { font-size: 11px; line-height: 1.5; }
   .shop-section { padding-top: 22px; padding-bottom: 42px; }
@@ -587,8 +579,6 @@ form textarea { min-height: 105px; resize: vertical; }
   .shop-status { font-size: 11px; margin: 14px 0 17px; }
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   .product-card { border-radius: 18px; }
-  .product-image { height: 195px; }
-  .product-photo-button { padding: 3px; }
   .badge { left: 8px; top: 9px; max-width: calc(100% - 56px); padding: 6px 8px; font-size: 8px; }
   .save-product { right: 4px; top: 4px; background: #fffaf1e8; }
   .product-body { padding: 15px 12px 10px; }
@@ -699,15 +689,12 @@ form textarea { min-height: 105px; resize: vertical; }
   .hero-photo figcaption { font-size: 7px; }
   .hero-photo figcaption .icon { display: none; }
   .collection-card h3 { font-size: 20px; }
-  .collection-art { height: 140px; }
-  .collection-dog { height: 132px; }
-  .collection-object { width: 95px; height: 95px; }
+  .collection-photo { height: 140px; }
   .collection-top { font-size: 9px; line-height: 1.5; }
   .shop-section .section-heading h2 { font-size: 31px; }
   .shop-sticker { width: 65px; height: 65px; font-size: 10px; }
   .shop-sticker b { font-size: 12px; }
   .product-grid { gap: 10px; }
-  .product-image { height: 170px; }
   .product-body { padding-inline: 10px; }
   .product-meta h3 { font-size: 15px; }
   .product-description { font-size: 12px; }

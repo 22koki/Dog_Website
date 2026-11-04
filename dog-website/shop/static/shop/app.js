@@ -12,7 +12,27 @@
   const money = amount => 'KSh ' + currency.format(Number(amount));
   const esc = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character]));
   const staticRoot = document.body.dataset.staticRoot || '/static/';
-  const img = path => staticRoot + String(path || '').split('/').map(encodeURIComponent).join('/');
+  // Resolve the original demo illustrations for existing catalogues as well.
+  // Custom image paths are preserved and no reseeding is required.
+  const legacyProductPhotos = new Map([
+    ['shop/images/food.svg', 'shop/images/products/food.jpg'],
+    ['shop/images/toy.svg', 'shop/images/products/chew.jpg'],
+    ['shop/images/ball.svg', 'shop/images/products/ball.jpg'],
+    ['shop/images/leash.svg', 'shop/images/products/leash.jpg'],
+    ['shop/images/bed.svg', 'shop/images/products/bed.jpg'],
+    ['shop/images/bowl.svg', 'shop/images/products/bowl.jpg']
+  ]);
+  const resolvedImage = path => legacyProductPhotos.get(path) || path;
+  const img = path => staticRoot + String(resolvedImage(path) || '').split('/').map(encodeURIComponent).join('/');
+  const productPhotoDescriptions = new Map([
+    ['shop/images/products/food.jpg', 'Close-up photograph of dry dog food kibble'],
+    ['shop/images/products/chew.jpg', 'Dog playing with a pink rubber chew toy'],
+    ['shop/images/products/ball.jpg', 'Photograph of a yellow tennis ball'],
+    ['shop/images/products/leash.jpg', 'Brown leather dog lead with a metal clip on a red background'],
+    ['shop/images/products/bed.jpg', 'Pomeranian resting in a grey cushioned dog bed'],
+    ['shop/images/products/bowl.jpg', 'Blue ceramic dog bowl filled with kibble on a tiled floor']
+  ]);
+  const productAlt = product => productPhotoDescriptions.get(resolvedImage(product.image)) || 'Product image: ' + product.name;
   const icon = name => '<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-' + name + '"/></svg>';
   const stockLimit = product => Math.min(99, Math.max(0, Number(product.stock) || 0));
 
@@ -116,7 +136,7 @@
       return '<article class="product-card" data-product-category="' + esc(product.category) + '">' +
         '<div class="product-image">' +
           (product.badge ? '<span class="badge">' + esc(product.badge) + '</span>' : '') +
-          '<button class="product-photo-button" data-product="' + product.id + '" aria-label="' + esc('View ' + product.name) + '"><img src="' + esc(img(product.image)) + '" alt="' + esc('Sample illustration: ' + product.name) + '" loading="lazy" width="400" height="380"></button>' +
+          '<button class="product-photo-button" data-product="' + product.id + '" aria-label="' + esc('View ' + product.name) + '"><img src="' + esc(img(product.image)) + '" alt="' + esc(productAlt(product)) + '" loading="lazy" width="1200" height="800"></button>' +
           saveButton(product) +
         '</div>' +
         '<div class="product-body"><span class="product-category">' + esc(categoryNames[product.category] || product.category) + '</span>' +
@@ -260,12 +280,12 @@
     if (!product) return;
     const available = stockLimit(product) > 0;
     $('#product-detail').innerHTML =
-      '<div class="product-detail-image"><img src="' + esc(img(product.image)) + '" alt="' + esc('Sample illustration: ' + product.name) + '" width="400" height="380"></div>' +
+      '<div class="product-detail-image"><img src="' + esc(img(product.image)) + '" alt="' + esc(productAlt(product)) + '" width="1200" height="800"></div>' +
       '<div class="product-detail-meta"><div><span class="product-category">' + esc(categoryNames[product.category] || product.category) + '</span><h2 id="product-title" tabindex="-1">' + esc(product.name) + '</h2></div><span class="price">' + money(product.price) + '</span></div>' +
       '<p class="product-detail-copy">' + esc(product.description) + '</p>' +
       '<p class="stock-note' + (available ? '' : ' sold-out') + '">' + (available ? 'Listed in stock · final availability confirmed by the shop' : 'Currently sold out') + '</p>' +
       '<div class="product-detail-actions"><button class="button dark" data-add="' + product.id + '"' + (available ? '' : ' disabled') + '>' + icon('plus') + (available ? 'Add to happy bag' : 'Sold out') + '</button>' + saveButton(product) + '</div>' +
-      '<p class="sample-note">Sample item and illustration. Order requests are confirmed by the shop before payment or delivery.</p>';
+      '<p class="sample-note">Sample listing with a representative product photograph. The shop confirms the item, availability and delivery before payment.</p>';
     openDialog($('#product-dialog'), '#product-title');
   }
 
