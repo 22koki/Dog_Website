@@ -822,3 +822,18 @@ html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="
   .dog-facts span,.dog-facts span:nth-child(even),.dog-facts span:nth-last-child(-n+2) { border-right:0; border-bottom:1px solid var(--line); }
   .dog-facts span:last-child { border-bottom:0; }
 }
+
+.gallery-note { margin:9px 0 0; color:var(--muted); font-size:10px; }
+.detail-buy-row { display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:center; margin-top:18px; }
+.detail-quantity { display:flex; align-items:center; border:1px solid var(--line); border-radius:999px; overflow:hidden; background:var(--cream); }
+.detail-quantity button { width:42px; height:48px; display:grid; place-items:center; background:transparent; }
+.detail-quantity button:hover { background:var(--yellow); }
+.detail-quantity .icon { width:16px; height:16px; }
+.detail-quantity span { min-width:34px; text-align:center; font-weight:700; }
+.detail-buy-row .product-detail-actions { margin:0; }
+@keyframes cart-pop { 40% { transform:translateY(-4px) rotate(-3deg) scale(1.06); background:var(--yellow); } }
+.basket-button.cart-pop { animation:cart-pop .45s ease; }
+@media (max-width:680px) {
+  .detail-buy-row { grid-template-columns:1fr; }
+  .detail-quantity { width:max-content; }
+}
