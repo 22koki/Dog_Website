@@ -946,3 +946,58 @@ html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="
   .box-preview-top h3 { font-size:25px; }
   .box-builder-actions { align-items:flex-start; flex-direction:column; }
 }
+
+
+/* Order tracking + WhatsApp */
+.tracking-section { padding:92px 0; background:var(--cream); border-top:1px solid #30253914; }
+.tracking-layout { display:grid; grid-template-columns:minmax(0,.9fr) minmax(380px,1.1fr); gap:48px; align-items:start; }
+.tracking-copy > p { max-width:600px; color:var(--muted); margin:18px 0 24px; }
+.tracking-form { display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:end; }
+.tracking-form label { display:grid; gap:7px; font-size:11px; font-weight:700; }
+.tracking-form input { min-height:50px; border:1px solid var(--line); border-radius:13px; background:var(--paper); padding:12px 14px; }
+.tracking-result { background:var(--ink); color:var(--cream); border-radius:26px; padding:28px; box-shadow:10px 12px 0 #30253912; }
+.tracking-result-head { display:flex; justify-content:space-between; gap:20px; align-items:start; }
+.tracking-result-head h3 { font-size:30px; margin:8px 0 0; }
+.tracking-status-pill { background:var(--yellow); color:var(--ink); border-radius:999px; padding:8px 11px; font-size:10px; font-weight:800; white-space:nowrap; }
+.tracking-status-pill.cancelled { background:#e7b0b0; }
+.tracking-date { color:#fffaf1b5; font-size:11px; margin:10px 0 20px; }
+.tracking-timeline { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:26px 0; position:relative; }
+.tracking-timeline::before { content:''; position:absolute; top:19px; left:7%; right:7%; height:2px; background:#fffaf136; }
+.tracking-step { position:relative; z-index:1; text-align:center; color:#fffaf178; }
+.tracking-dot { margin:0 auto 9px; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; background:#514759; border:1px solid #fffaf13b; }
+.tracking-dot .icon { width:19px; height:19px; fill:currentColor; stroke:none; }
+.tracking-step.complete,.tracking-step.current { color:var(--cream); }
+.tracking-step.complete .tracking-dot { background:#6f9f7b; }
+.tracking-step.current .tracking-dot { background:var(--coral); color:var(--ink); transform:scale(1.08); }
+.tracking-step strong,.tracking-step small { display:block; }
+.tracking-step strong { font-size:10px; line-height:1.35; }
+.tracking-step small { margin-top:4px; font-size:8px; color:var(--yellow); }
+.tracking-order-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin:20px 0; }
+.tracking-order-meta span { padding:12px; border:1px solid #fffaf126; border-radius:14px; font-size:11px; }
+.tracking-order-meta b { display:block; font-size:8px; text-transform:uppercase; letter-spacing:.8px; color:#fffaf18a; margin-bottom:5px; }
+.tracking-items { border-top:1px solid #fffaf126; padding-top:18px; }
+.tracking-items ul { list-style:none; margin:10px 0 18px; padding:0; display:grid; gap:8px; }
+.tracking-items li { display:flex; justify-content:space-between; gap:16px; font-size:11px; }
+.tracking-cancelled { margin:22px 0; padding:15px; border-radius:14px; background:#7e3e46; font-size:12px; line-height:1.5; }
+.whatsapp-button { background:#cfe8c9; color:var(--ink); width:100%; }
+.whatsapp-float { position:fixed; right:20px; bottom:22px; z-index:35; display:flex; align-items:center; gap:9px; }
+.whatsapp-bubble { background:var(--ink); color:var(--cream); padding:10px 13px; border-radius:14px; font-size:10px; box-shadow:0 7px 22px #30253928; }
+.whatsapp-mark { width:50px; height:50px; border-radius:50%; display:grid; place-items:center; background:#cfe8c9; color:var(--ink); border:2px solid var(--ink); font-weight:800; font-size:12px; box-shadow:4px 5px 0 #30253918; transition:transform .2s ease; }
+.whatsapp-float:hover .whatsapp-mark { transform:rotate(-7deg) translateY(-3px); }
+
+@media (max-width: 950px) {
+  .tracking-layout { grid-template-columns:1fr; }
+  .tracking-result { max-width:760px; }
+}
+@media (max-width: 680px) {
+  .tracking-section { padding:58px 0; }
+  .tracking-form { grid-template-columns:1fr; }
+  .tracking-timeline { grid-template-columns:1fr; gap:9px; }
+  .tracking-timeline::before { top:20px; bottom:20px; left:19px; right:auto; width:2px; height:auto; }
+  .tracking-step { display:grid; grid-template-columns:40px 1fr; gap:12px; text-align:left; align-items:center; }
+  .tracking-dot { margin:0; }
+  .tracking-step small { margin-top:2px; }
+  .tracking-order-meta { grid-template-columns:1fr; }
+  .tracking-result-head { flex-direction:column; }
+  .whatsapp-bubble { display:none; }
+}
