@@ -39,11 +39,12 @@ def order(request):
     try:
         data = payload(request)
         name, email = contact(data)
-        phone, address = field(data, 'phone', 30), field(data, 'address', 600)
+        phone = field(data, 'phone', 30)
         delivery_method = data.get('delivery_method', 'delivery')
         payment_method = data.get('payment_method', 'mpesa')
         notes = data.get('notes', '')
         if delivery_method not in {'delivery', 'pickup'}: raise ValueError('Please choose a valid delivery method.')
+        address = 'Store pickup' if delivery_method == 'pickup' else field(data, 'address', 600)
         if payment_method not in {'mpesa', 'cod', 'pickup'}: raise ValueError('Please choose a valid payment method.')
         if not isinstance(notes, str) or len(notes.strip()) > 600: raise ValueError('Order notes must be 600 characters or fewer.')
         if delivery_method == 'pickup' and payment_method == 'cod': raise ValueError('Cash on delivery is only available for delivery orders.')
