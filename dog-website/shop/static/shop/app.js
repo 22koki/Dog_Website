@@ -308,7 +308,7 @@
     const profile = productProfiles[product.category] || productProfiles.care;
     const related = products.filter(entry => entry.id !== product.id && entry.category === product.category).slice(0, 2);
     $('#product-detail').innerHTML =
-      '<div class="product-detail-layout"><div><div class="product-detail-image"><img src="' + esc(img(product.image)) + '" alt="' + esc(productAlt(product)) + '" width="1200" height="800"></div><div class="detail-thumbs"><button class="active"><img src="' + esc(img(product.image)) + '" alt=""></button><button><img src="' + esc(img(product.image)) + '" alt=""></button><button><img src="' + esc(img(product.image)) + '" alt=""></button></div></div><div>' +
+      '<div class="product-detail-layout"><div><div class="product-detail-image"><img src="' + esc(img(product.image)) + '" alt="' + esc(productAlt(product)) + '" width="1200" height="800"></div><p class="gallery-note">1 verified product photo in this demo · gallery is ready for additional real angles.</p></div><div>' +
       '<div class="product-detail-meta"><div><span class="product-category">' + esc(categoryNames[product.category] || product.category) + '</span><h2 id="product-title" tabindex="-1">' + esc(product.name) + '</h2><div class="mini-rating">★★★★★ <span>Demo rating · 4.8</span></div></div><span class="price">' + money(product.price) + '</span></div>' +
       '<p class="product-detail-copy">' + esc(product.description) + '</p><p class="product-detail-copy">' + esc(profile.detail) + '</p>' +
       '<div class="product-specs"><span><b>Dog size</b>' + profile.sizes.map(x => esc(x)).join(', ') + '</span><span><b>Life stage</b>' + profile.stages.map(x => esc(x)).join(', ') + '</span><span><b>Stock</b>' + stockLimit(product) + ' listed</span><span><b>Delivery</b>Confirmed after request</span></div>' +
@@ -316,7 +316,8 @@
       '<div class="product-detail-actions"><button class="button dark" data-add="' + product.id + '"' + (available ? '' : ' disabled') + '>' + icon('plus') + (available ? 'Add to happy bag' : 'Sold out') + '</button>' + saveButton(product) + '</div></div></div>' +
       (related.length ? '<div class="related-products"><span class="eyebrow">PAIRS WELL WITH</span><div>' + related.map(entry => '<button data-product="' + entry.id + '"><img src="' + esc(img(entry.image)) + '" alt=""><span><strong>' + esc(entry.name) + '</strong><small>' + money(entry.price) + '</small></span></button>').join('') + '</div></div>' : '') +
       '<p class="sample-note">Sample listing with representative photography and demo ratings. Replace with verified product specifications, images and reviews before launch.</p>';
-    openDialog($('#product-dialog'), '#product-title');
+    if ($('#product-dialog').open) $('#product-title').focus({preventScroll: true});
+    else openDialog($('#product-dialog'), '#product-title');
   }
 
   function renderDogs() {
