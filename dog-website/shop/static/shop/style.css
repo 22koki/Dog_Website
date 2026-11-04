@@ -837,3 +837,17 @@ html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="
   .detail-buy-row { grid-template-columns:1fr; }
   .detail-quantity { width:max-content; }
 }
+
+
+/* Playful paw cursor for pointer-based devices. Touch devices keep the native cursor. */
+@media (pointer: fine) {
+  html, body {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='%23302539'%3E%3Cellipse cx='8' cy='9' rx='4' ry='5'/%3E%3Cellipse cx='15' cy='6' rx='4' ry='5'/%3E%3Cellipse cx='23' cy='9' rx='4' ry='5'/%3E%3Cellipse cx='27' cy='16' rx='3.5' ry='4.5'/%3E%3Cpath d='M16 14c-5.5 0-10 4.2-10 9.1 0 3.4 2.4 5.9 5.8 5.9 1.6 0 2.8-.7 4.2-1.5 1.4.8 2.6 1.5 4.2 1.5 3.4 0 5.8-2.5 5.8-5.9C26 18.2 21.5 14 16 14z'/%3E%3C/g%3E%3C/svg%3E") 8 8, auto;
+  }
+  a, button, [role="button"], select, label[for], input[type="checkbox"], input[type="radio"], summary {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='%23fc8064' stroke='%23302539' stroke-width='1'%3E%3Cellipse cx='8' cy='9' rx='4' ry='5'/%3E%3Cellipse cx='15' cy='6' rx='4' ry='5'/%3E%3Cellipse cx='23' cy='9' rx='4' ry='5'/%3E%3Cellipse cx='27' cy='16' rx='3.5' ry='4.5'/%3E%3Cpath d='M16 14c-5.5 0-10 4.2-10 9.1 0 3.4 2.4 5.9 5.8 5.9 1.6 0 2.8-.7 4.2-1.5 1.4.8 2.6 1.5 4.2 1.5 3.4 0 5.8-2.5 5.8-5.9C26 18.2 21.5 14 16 14z'/%3E%3C/g%3E%3C/svg%3E") 8 8, pointer;
+  }
+  input[type="text"], input[type="email"], input[type="tel"], input[type="search"], textarea {
+    cursor: text;
+  }
+}
