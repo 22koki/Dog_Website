@@ -11,7 +11,9 @@ A playful Django storefront for dogs and their people: dog profiles, food, toys,
 - Source-linked fun facts and a three-question personality quiz with a back button and a matching collection.
 - Keyboard navigation, named native dialogs, focus restoration and a motion-pause control. Device reduced-motion preferences take priority.
 
-The redesign uses the bundled dog photographs and product illustrations. It introduces no build step, new dependency or database migration.
+The storefront uses bundled photographs of real dogs, dog food, chew toys, a tennis ball, a leather lead, a cushioned bed and a ceramic bowl. Product photos appear in collection tiles, product cards, quick views and the shopping bag. It introduces no build step, new dependency or database migration.
+
+Existing demo catalogues automatically display the new photographs even when their saved image paths still refer to the original six SVG illustrations. Custom image paths are preserved; there is no need to reseed or recreate products. New demo catalogues use the photograph paths directly.
 
 ## Windows setup
 
@@ -29,15 +31,15 @@ Open http://127.0.0.1:8000. No Node or PostgreSQL needed. On Linux/macOS use pyt
 
 Create a staff login using manage.py createsuperuser, then manage products, dogs, orders and enquiries at /admin/. Image fields accept static paths such as shop/images/golden.jpg.
 
-Seeded listings, prices, illustrations and dog profiles are samples. Replace with real inventory before launch. The repeatable seed command preserves existing entries.
+Seeded listings, prices and dog profiles are samples. The real product photographs are representative images for the sample catalogue. Replace the listings and photographs with your actual inventory before launch. The repeatable seed command preserves existing entries.
 
 Orders are requests awaiting staff confirmation. Prices are calculated by the server. Requests do not reserve inventory, charge money or automatically send notifications. Staff must confirm availability, delivery and payment. Dog enquiries are saved for staff review.
 
 ## Validation
 
-The existing eight backend tests cover rendering, authoritative pricing, invalid baskets, unavailable listings, enquiries, CSRF and repeatable seed data.
+All eight existing backend tests passed for the product-photography revision. They cover rendering, authoritative pricing, invalid baskets, unavailable listings, enquiries, CSRF and repeatable seed data.
 
-For the design revision, JavaScript syntax compilation and source checks for DOM targets, unique HTML IDs, icon references and bundled image paths passed. Backend execution and browser rendering were not available in the editing session because the execution workspace failed to initialize. These source checks do not replace a browser review.
+The new JPEG files were decoded and visually inspected. JavaScript syntax, the six legacy-to-photo path mappings, custom-path preservation and static asset references were checked. Browser rendering could not be completed: the editing environment blocks Chromium's local sockets, and its automatic approval policy rejected the required additional permissions. Desktop/mobile screenshot verification remains outstanding; source checks do not replace a browser review.
 
 Run tests with your environment Python: `python dog-website/manage.py test shop`.
 
@@ -49,7 +51,11 @@ Configure DJANGO_SECRET_KEY, DJANGO_DEBUG=0, DJANGO_ALLOWED_HOSTS and CSRF_TRUST
 
 ## Images
 
-Dog photographs downloaded from Unsplash image IDs: photo-1552053831-71594a27632d, photo-1517849845537-4d257902454a, photo-1583337130417-3346a1be7dee, photo-1548199973-03cce0bbc87b and photo-1537151625747-768eb6cf92b2. Original SVG illustrations represent sample products. Fonts: Google Fonts DM Sans and Manrope with system fallbacks.
+Dog photographs downloaded from Unsplash image IDs: photo-1552053831-71594a27632d, photo-1517849845537-4d257902454a, photo-1583337130417-3346a1be7dee, photo-1548199973-03cce0bbc87b and photo-1537151625747-768eb6cf92b2.
+
+The six product photographs are bundled under `dog-website/shop/static/shop/images/products/` and total less than 1 MB. Photographer credits, original source links and image licences are recorded in [Photo credits](dog-website/shop/static/shop/photo-credits.html), also linked from the storefront footer. The leather-lead photograph by Kristina.averina retains its CC BY-SA 4.0 licence; the other product photos use the Pexels or Unsplash licence listed on that page.
+
+Fonts: Google Fonts DM Sans and Manrope with system fallbacks.
 
 ## Fun-fact sources
 

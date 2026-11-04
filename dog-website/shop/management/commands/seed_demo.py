@@ -4,12 +4,12 @@ class Command(BaseCommand):
     help = 'Create clearly illustrative sample products and dog profiles; never overwrite existing entries.'
     def handle(self, *args, **options):
         products = [
-            ('Everyday crunch', 'food', 'A little bowl of happiness · 2 kg', 1800, 'food.svg', 'The everyday favourite'),
-            ('The happy chew', 'toys', 'A bouncy buddy for playtime', 650, 'toy.svg', 'Playtime essential'),
-            ('Zoomie tennis ball', 'toys', 'Ready. Set. Fetch! · Single ball', 350, 'ball.svg', 'For the fetch obsessed'),
-            ('Adventure leash', 'accessories', 'For walks with a little extra personality', 1200, 'leash.svg', 'Out & about'),
-            ('Cloud nine bed', 'care', 'A cosy spot for the chief nap officer', 4500, 'bed.svg', 'Nap approved'),
-            ('The good bowl', 'care', 'A cheerful place for the daily crunch', 950, 'bowl.svg', 'Dinner is served'),
+            ('Everyday crunch', 'food', 'A little bowl of happiness · 2 kg', 1800, 'products/food.jpg', 'The everyday favourite'),
+            ('The happy chew', 'toys', 'A bouncy buddy for playtime', 650, 'products/chew.jpg', 'Playtime essential'),
+            ('Zoomie tennis ball', 'toys', 'Ready. Set. Fetch! · Single ball', 350, 'products/ball.jpg', 'For the fetch obsessed'),
+            ('Adventure leash', 'accessories', 'For walks with a little extra personality', 1200, 'products/leash.jpg', 'Out & about'),
+            ('Cloud nine bed', 'care', 'A cosy spot for the chief nap officer', 4500, 'products/bed.jpg', 'Nap approved'),
+            ('The good bowl', 'care', 'A cheerful place for the daily crunch', 950, 'products/bowl.jpg', 'Dinner is served'),
         ]
         for name,category,description,price,image,badge in products:
             Product.objects.get_or_create(name=name,defaults=dict(category=category,description=description,price=price,image='shop/images/'+image,badge=badge))

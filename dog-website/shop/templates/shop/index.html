@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=2">
-  <script defer src="{% static 'shop/app.js' %}?v=2"></script>
+  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=3">
+  <script defer src="{% static 'shop/app.js' %}?v=3"></script>
 </head>
 <body data-static-root="{% get_static_prefix %}">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -94,22 +94,22 @@
       <div class="collections-grid">
         <a href="#shop" class="collection-card collection-food" data-category="food">
           <div class="collection-top"><span>01 / THE TASTY STUFF</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></div>
-          <div class="collection-art"><img class="collection-dog" src="{% static 'shop/images/golden.jpg' %}" alt="Golden retriever holding a flower" loading="lazy" width="1200" height="1924"><img class="collection-object" src="{% static 'shop/images/food.svg' %}" alt="Illustrated sample food bag" loading="lazy" width="400" height="380"></div>
+          <div class="collection-photo"><img src="{% static 'shop/images/products/food.jpg' %}" alt="Close-up photograph of dry dog food kibble" loading="lazy" width="1200" height="800"></div>
           <h3>Food & treats</h3><p>Big flavour. Happy little faces.</p>
         </a>
         <a href="#shop" class="collection-card collection-toys" data-category="toys">
           <div class="collection-top"><span>02 / LET’S GET SILLY</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></div>
-          <div class="collection-art"><img class="collection-dog" src="{% static 'shop/images/portrait.jpg' %}" alt="Corgi puppy ready for playtime" loading="lazy" width="1000" height="1509"><img class="collection-object" src="{% static 'shop/images/toy.svg' %}" alt="Illustrated purple bone toy" loading="lazy" width="400" height="380"></div>
+          <div class="collection-photo"><img src="{% static 'shop/images/products/chew.jpg' %}" alt="Dog playing with a pink rubber chew toy" loading="lazy" width="1200" height="800"></div>
           <h3>Toys & play</h3><p>For the one-more-throw crowd.</p>
         </a>
         <a href="#shop" class="collection-card collection-walk" data-category="accessories">
           <div class="collection-top"><span>03 / OUT & ABOUT</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></div>
-          <div class="collection-art"><img class="collection-dog" src="{% static 'shop/images/puppy.jpg' %}" alt="Dog wearing a bright yellow hoodie" loading="lazy" width="1000" height="1250"><img class="collection-object" src="{% static 'shop/images/leash.svg' %}" alt="Illustrated orange leash" loading="lazy" width="400" height="380"></div>
+          <div class="collection-photo"><img src="{% static 'shop/images/products/leash.jpg' %}" alt="Brown leather dog lead and metal clip on a red background" loading="lazy" width="1280" height="720"></div>
           <h3>Walk & wear</h3><p>Every pavement is a runway.</p>
         </a>
         <a href="#shop" class="collection-card collection-care" data-category="care">
           <div class="collection-top"><span>04 / DO NOT DISTURB</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></div>
-          <div class="collection-art"><img class="collection-dog" src="{% static 'shop/images/pug.jpg' %}" alt="Pug snuggled in a soft blanket" loading="lazy" width="1000" height="1333"><img class="collection-object" src="{% static 'shop/images/bed.svg' %}" alt="Illustrated dog bed" loading="lazy" width="400" height="380"></div>
+          <div class="collection-photo"><img src="{% static 'shop/images/products/bed.jpg' %}" alt="Pomeranian resting in a grey cushioned dog bed" loading="lazy" width="1200" height="960"></div>
           <h3>Beds & care</h3><p>Chief nap officer essentials.</p>
         </a>
       </div>
@@ -129,7 +129,7 @@
       <p id="shop-status" class="shop-status" aria-live="polite"></p>
       <div id="products" class="product-grid"></div>
       <div class="empty-state" id="empty-products" hidden><svg class="icon" aria-hidden="true"><use href="#i-paw"/></svg><h3>Nothing sniffed out. Yet.</h3><p id="empty-message">Try another search, or explore the whole collection.</p><button id="reset-shop" class="button dark">Show all the good stuff <svg class="icon" aria-hidden="true"><use href="#i-right"/></svg></button></div>
-      <p class="sample-note">Sample collection · Product illustrations and prices are for demonstration. The shop confirms every order request.</p>
+      <p class="sample-note">Sample collection · Real product photographs represent the sample listings. Prices and final items are confirmed by the shop.</p>
       <noscript><p class="notice">Enable JavaScript to browse the catalogue, use the shopping bag and send enquiries.</p></noscript>
     </section>
 
@@ -166,7 +166,7 @@
     </section>
   </main>
 
-  <footer class="site-footer"><div class="wrap"><div class="footer-top"><div><a href="#home" class="logo"><span class="logo-mark"><svg class="icon" aria-hidden="true"><use href="#i-paw"/></svg></span><span>good dog<span class="logo-sub">C L U B</span></span></a><p>Big love. Little paws. Good times.</p></div><nav aria-label="Footer navigation"><a href="#shop">Shop the good stuff</a><a href="#dogs">Meet your best friend</a><a href="#play">Find your dog-parent vibe</a><a href="#story">Our little world</a></nav><a href="#home" class="back-top" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div><div class="footer-bottom"><small>© {% now 'Y' %} Good Dog Club. Made for dog people.</small><span>More love. More woof. <svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg></span></div></div></footer>
+  <footer class="site-footer"><div class="wrap"><div class="footer-top"><div><a href="#home" class="logo"><span class="logo-mark"><svg class="icon" aria-hidden="true"><use href="#i-paw"/></svg></span><span>good dog<span class="logo-sub">C L U B</span></span></a><p>Big love. Little paws. Good times.</p></div><nav aria-label="Footer navigation"><a href="#shop">Shop the good stuff</a><a href="#dogs">Meet your best friend</a><a href="#play">Find your dog-parent vibe</a><a href="#story">Our little world</a><a href="{% static 'shop/photo-credits.html' %}">Photo credits</a></nav><a href="#home" class="back-top" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div><div class="footer-bottom"><small>© {% now 'Y' %} Good Dog Club. Made for dog people.</small><span>More love. More woof. <svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg></span></div></div></footer>
 
   <dialog id="cart-dialog" class="cart-dialog" aria-labelledby="cart-title">
     <div class="dialog-top"><div><span class="eyebrow">EXCELLENT TASTE, HUMAN.</span><h2 id="cart-title" tabindex="-1">Your happy bag<span>.</span></h2></div><button class="icon-button" data-close aria-label="Close shopping bag"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
