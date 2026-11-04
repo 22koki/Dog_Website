@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=4">
   <script defer src="{% static 'shop/app.js' %}?v=3"></script>
 </head>
 <body data-static-root="{% get_static_prefix %}">
@@ -82,8 +82,8 @@
     <div class="ticker-shell">
       <div class="ticker" aria-label="Good food, muddy paws, belly rubs, happy dogs">
         <div class="ticker-track" aria-hidden="true">
-          <div class="ticker-group"><span>GOOD FOOD</span><span>✳</span><span>MUDDY PAWS</span><span>✳</span><span>BELLY RUBS</span><span>✳</span><span>HAPPY DOGS</span><span>✳</span></div>
-          <div class="ticker-group"><span>GOOD FOOD</span><span>✳</span><span>MUDDY PAWS</span><span>✳</span><span>BELLY RUBS</span><span>✳</span><span>HAPPY DOGS</span><span>✳</span></div>
+          <div class="ticker-group"><span>GOOD FOOD</span><span class="ticker-paw paw-coral"><svg class="icon"><use href="#i-paw"/></svg></span><span>MUDDY PAWS</span><span class="ticker-paw paw-yellow"><svg class="icon"><use href="#i-paw"/></svg></span><span>BELLY RUBS</span><span class="ticker-paw paw-lavender"><svg class="icon"><use href="#i-paw"/></svg></span><span>HAPPY DOGS</span><span class="ticker-paw paw-mint"><svg class="icon"><use href="#i-paw"/></svg></span></div>
+          <div class="ticker-group"><span>GOOD FOOD</span><span class="ticker-paw paw-coral"><svg class="icon"><use href="#i-paw"/></svg></span><span>MUDDY PAWS</span><span class="ticker-paw paw-yellow"><svg class="icon"><use href="#i-paw"/></svg></span><span>BELLY RUBS</span><span class="ticker-paw paw-lavender"><svg class="icon"><use href="#i-paw"/></svg></span><span>HAPPY DOGS</span><span class="ticker-paw paw-mint"><svg class="icon"><use href="#i-paw"/></svg></span></div>
         </div>
       </div>
       <button id="toggle-motion" class="motion-button" aria-pressed="false">Pause motion <span aria-hidden="true">Ⅱ</span></button>
