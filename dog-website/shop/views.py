@@ -40,6 +40,13 @@ def order(request):
         data = payload(request)
         name, email = contact(data)
         phone, address = field(data, 'phone', 30), field(data, 'address', 600)
+        delivery_method = data.get('delivery_method', 'delivery')
+        payment_method = data.get('payment_method', 'mpesa')
+        notes = data.get('notes', '')
+        if delivery_method not in {'delivery', 'pickup'}: raise ValueError('Please choose a valid delivery method.')
+        if payment_method not in {'mpesa', 'cod', 'pickup'}: raise ValueError('Please choose a valid payment method.')
+        if not isinstance(notes, str) or len(notes.strip()) > 600: raise ValueError('Order notes must be 600 characters or fewer.')
+        if delivery_method == 'pickup' and payment_method == 'cod': raise ValueError('Cash on delivery is only available for delivery orders.')
         items = data.get('items')
         if not isinstance(items, list) or not 1 <= len(items) <= 50: raise ValueError('Your basket must contain 1–50 different items.')
         quantities = {}
@@ -55,9 +62,9 @@ def order(request):
             for product in products:
                 if quantities[product.id] > product.stock: raise ValueError(f'Only {product.stock} of {product.name} are currently listed. Please update your basket.')
                 total += product.price * quantities[product.id]
-            order = Order.objects.create(name=name, email=email, phone=phone, address=address, total=total)
+            order = Order.objects.create(name=name, email=email, phone=phone, address=address, delivery_method=delivery_method, payment_method=payment_method, notes=notes.strip(), total=total)
             OrderItem.objects.bulk_create([OrderItem(order=order, product=p, name=p.name, quantity=quantities[p.id], unit_price=p.price) for p in products])
-        return JsonResponse({'reference': f'GDC-{order.id:05d}', 'total': str(total)}, status=201)
+        return JsonResponse({'reference': f'GDC-{order.id:05d}', 'total': str(total), 'delivery_method': order.delivery_method, 'payment_method': order.payment_method}, status=201)
     except ValueError as exc: return JsonResponse({'error': str(exc)}, status=400)
 
 @require_POST
