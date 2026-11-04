@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=6">
-  <script defer src="{% static 'shop/app.js' %}?v=5"></script>
+  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=7">
+  <script defer src="{% static 'shop/app.js' %}?v=6"></script>
 </head>
 <body data-static-root="{% get_static_prefix %}">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -36,7 +36,7 @@
     <div class="wrap header-row">
       <a href="#home" class="logo" aria-label="Good Dog Club home"><span class="logo-mark"><svg class="icon" aria-hidden="true"><use href="#i-paw"/></svg></span><span>good dog<span class="logo-sub">C L U B</span></span></a>
       <nav class="main-nav" id="main-nav" aria-label="Main navigation">
-        <a href="#shop">Shop the good stuff</a><a href="#dogs">Meet the dogs</a><a href="#play">The fun corner <span aria-hidden="true">✳</span></a>
+        <a href="#shop">Shop the good stuff</a><a href="#build-box">Build a dog box</a><a href="#dogs">Meet the dogs</a><a href="#play">The fun corner <span aria-hidden="true">✳</span></a>
       </nav>
       <div class="header-actions">
         <button class="icon-button saved-button" id="open-saved" aria-label="View saved products"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg><span class="counter" id="saved-count">0</span></button>
@@ -138,6 +138,47 @@
       <noscript><p class="notice">Enable JavaScript to browse the catalogue, use the shopping bag and send enquiries.</p></noscript>
     </section>
 
+
+    <section id="build-box" class="box-builder-section" aria-labelledby="box-builder-title">
+      <div class="wrap">
+        <div class="box-builder-heading">
+          <div>
+            <span class="eyebrow">FOUR PICKS. ONE VERY GOOD BOX.</span>
+            <h2 id="box-builder-title">Build their<br><span class="serif-accent">perfect dog box.</span></h2>
+          </div>
+          <div class="box-builder-intro">
+            <p>Choose one tasty thing, one fun thing, one cosy essential and one walk-ready favourite. We’ll keep the total updated as you build.</p>
+            <div class="box-builder-actions">
+              <button class="button yellow" id="box-surprise">Surprise me <svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg></button>
+              <button class="box-reset" id="box-reset">Reset box</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="box-builder-layout">
+          <div id="box-steps" class="box-steps" aria-live="polite"></div>
+
+          <aside class="dog-box-preview" aria-labelledby="dog-box-summary-title">
+            <div class="box-lid" aria-hidden="true"><span>GOOD DOG</span><svg class="icon"><use href="#i-paw"/></svg><span>BOX</span></div>
+            <div class="box-preview-inner">
+              <div class="box-preview-top">
+                <div>
+                  <span class="eyebrow">YOUR BOX</span>
+                  <h3 id="dog-box-summary-title">A little happiness,<br>packed up.</h3>
+                </div>
+                <span id="box-progress-label">0 / 4</span>
+              </div>
+              <div class="box-progress-paws" id="box-progress-paws" aria-hidden="true"></div>
+              <div id="box-summary" class="box-summary"></div>
+              <div class="box-total"><span>Box total</span><strong id="box-total">KSh 0</strong></div>
+              <button class="button dark full" id="box-add-all" disabled>Add the whole box to bag <svg class="icon" aria-hidden="true"><use href="#i-bag"/></svg></button>
+              <p class="box-note">No bundle discount is applied yet—the checkout uses the real product prices shown here.</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
     <section class="wrap reviews-section" aria-labelledby="reviews-title">
       <div class="section-heading"><div><span class="eyebrow">DEMO SOCIAL PROOF</span><h2 id="reviews-title">Happy dogs.<br><span class="serif-accent">Happy humans.</span></h2></div><p>Illustrative reviews for the storefront design.<br>Replace with verified customer feedback before launch.</p></div>
       <div class="review-grid">
@@ -180,7 +221,7 @@
     </section>
   </main>
 
-  <footer class="site-footer"><div class="wrap"><div class="footer-top"><div><a href="#home" class="logo"><span class="logo-mark"><svg class="icon" aria-hidden="true"><use href="#i-paw"/></svg></span><span>good dog<span class="logo-sub">C L U B</span></span></a><p>Big love. Little paws. Good times.</p></div><nav aria-label="Footer navigation"><a href="#shop">Shop the good stuff</a><a href="#dogs">Meet your best friend</a><a href="#play">Find your dog-parent vibe</a><a href="#story">Our little world</a><a href="{% static 'shop/photo-credits.html' %}">Photo credits</a></nav><a href="#home" class="back-top" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div><div class="footer-bottom"><small>© {% now 'Y' %} Good Dog Club. Made for dog people.</small><span>More love. More woof. <svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg></span></div></div></footer>
+  <footer class="site-footer"><div class="wrap"><div class="footer-top"><div><a href="#home" class="logo"><span class="logo-mark"><svg class="icon" aria-hidden="true"><use href="#i-paw"/></svg></span><span>good dog<span class="logo-sub">C L U B</span></span></a><p>Big love. Little paws. Good times.</p></div><nav aria-label="Footer navigation"><a href="#shop">Shop the good stuff</a><a href="#build-box">Build a dog box</a><a href="#dogs">Meet your best friend</a><a href="#play">Find your dog-parent vibe</a><a href="#story">Our little world</a><a href="{% static 'shop/photo-credits.html' %}">Photo credits</a></nav><a href="#home" class="back-top" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div><div class="footer-bottom"><small>© {% now 'Y' %} Good Dog Club. Made for dog people.</small><span>More love. More woof. <svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg></span></div></div></footer>
 
   <dialog id="cart-dialog" class="cart-dialog" aria-labelledby="cart-title">
     <div class="dialog-top"><div><span class="eyebrow">EXCELLENT TASTE, HUMAN.</span><h2 id="cart-title" tabindex="-1">Your happy bag<span>.</span></h2></div><button class="icon-button" data-close aria-label="Close shopping bag"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
