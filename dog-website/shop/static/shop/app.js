@@ -218,6 +218,101 @@
     toast(amount > 1 ? amount + ' × ' + product.name + ' are in the bag.' : product.name + ' is in the bag. Excellent choice!');
   }
 
+
+  const boxSteps = [
+    {key:'food', label:'Pick their food', kicker:'01 / SOMETHING TASTY', note:'Start with a bowl-worthy favourite.'},
+    {key:'toys', label:'Pick something fun', kicker:'02 / PLAY MODE', note:'For fetch, chewing and glorious chaos.'},
+    {key:'care', label:'Pick something cosy', kicker:'03 / COSY CORNER', note:'A little comfort goes a long way.'},
+    {key:'accessories', label:'Pick a walk essential', kicker:'04 / OUT & ABOUT', note:'Ready for the next pavement adventure.'}
+  ];
+  const storedBox = readStored('good-dog-box', {});
+  const dogBox = Object.create(null);
+  if (storedBox && typeof storedBox === 'object' && !Array.isArray(storedBox)) {
+    for (const step of boxSteps) {
+      const id = Number(storedBox[step.key]);
+      const product = productById.get(id);
+      if (product && product.category === step.key && stockLimit(product) > 0) dogBox[step.key] = id;
+    }
+  }
+
+  function boxProducts(category) {
+    return products.filter(product => product.category === category && stockLimit(product) > 0);
+  }
+
+  function renderDogBox() {
+    writeStored('good-dog-box', dogBox);
+    $('#box-steps').innerHTML = boxSteps.map((step, stepIndex) => {
+      const options = boxProducts(step.key);
+      const selectedId = dogBox[step.key];
+      return '<article class="box-step' + (selectedId ? ' complete' : '') + '">' +
+        '<div class="box-step-copy"><span class="eyebrow">' + esc(step.kicker) + '</span><div><span class="box-step-number">' + String(stepIndex + 1).padStart(2, '0') + '</span><h3>' + esc(step.label) + '</h3></div><p>' + esc(step.note) + '</p></div>' +
+        '<div class="box-option-row">' + (options.length ? options.map(product =>
+          '<button class="box-option' + (selectedId === product.id ? ' selected' : '') + '" data-box-category="' + esc(step.key) + '" data-box-product="' + product.id + '" aria-pressed="' + (selectedId === product.id) + '">' +
+            '<span class="box-option-image"><img src="' + esc(img(product.image)) + '" alt="' + esc(productAlt(product)) + '"><span class="box-check">' + icon('paw') + '</span></span>' +
+            '<span class="box-option-copy"><strong>' + esc(product.name) + '</strong><small>' + money(product.price) + '</small></span>' +
+          '</button>'
+        ).join('') : '<p class="box-unavailable">No in-stock option is available for this step yet.</p>') + '</div>' +
+      '</article>';
+    }).join('');
+
+    const chosen = boxSteps.map(step => productById.get(dogBox[step.key])).filter(Boolean);
+    const total = chosen.reduce((sum, product) => sum + Number(product.price), 0);
+    $('#box-progress-label').textContent = chosen.length + ' / ' + boxSteps.length;
+    $('#box-total').textContent = money(total);
+    $('#box-progress-paws').innerHTML = boxSteps.map((step, index) =>
+      '<span class="' + (dogBox[step.key] ? 'filled' : '') + '" aria-label="Step ' + (index + 1) + (dogBox[step.key] ? ' complete' : ' incomplete') + '">' + icon('paw') + '</span>'
+    ).join('');
+    $('#box-summary').innerHTML = chosen.length ? boxSteps.map(step => {
+      const product = productById.get(dogBox[step.key]);
+      return product ? '<div class="box-summary-row"><img src="' + esc(img(product.image)) + '" alt=""><span><small>' + esc(categoryNames[step.key] || step.key) + '</small><strong>' + esc(product.name) + '</strong></span><b>' + money(product.price) + '</b></div>' : '';
+    }).join('') : '<div class="box-empty-summary">' + icon('paw') + '<p>Your box is waiting for its first good thing.</p></div>';
+    $('#box-add-all').disabled = chosen.length !== boxSteps.length;
+  }
+
+  function chooseBoxProduct(category, id) {
+    const product = productById.get(id);
+    if (!product || product.category !== category || stockLimit(product) < 1) return;
+    dogBox[category] = id;
+    renderDogBox();
+    toast(product.name + ' added to your dog box.');
+  }
+
+  function surpriseDogBox() {
+    for (const step of boxSteps) {
+      const options = boxProducts(step.key);
+      if (options.length) dogBox[step.key] = options[Math.floor(Math.random() * options.length)].id;
+      else delete dogBox[step.key];
+    }
+    renderDogBox();
+    toast('Surprise box built. Very good choices, obviously.');
+  }
+
+  function resetDogBox() {
+    for (const step of boxSteps) delete dogBox[step.key];
+    renderDogBox();
+    toast('Dog box cleared. Fresh paws, fresh start.');
+  }
+
+  function addDogBoxToCart() {
+    const chosen = boxSteps.map(step => productById.get(dogBox[step.key]));
+    if (chosen.some(product => !product)) {
+      toast('Complete all four picks before adding the box.');
+      return;
+    }
+    const unavailable = chosen.find(product => (cart[product.id] || 0) + 1 > stockLimit(product));
+    if (unavailable) {
+      toast(unavailable.name + ' does not have enough listed stock for this box.');
+      return;
+    }
+    chosen.forEach(product => { cart[product.id] = (cart[product.id] || 0) + 1; });
+    saveCart();
+    const bag = $('#open-cart');
+    bag.classList.remove('cart-pop');
+    requestAnimationFrame(() => bag.classList.add('cart-pop'));
+    setTimeout(() => bag.classList.remove('cart-pop'), 500);
+    toast('The whole Good Dog Box is in your bag. Tail wags incoming.');
+  }
+
   function toggleFavorite(id) {
     const product = productById.get(id);
     if (!product) return;
@@ -470,6 +565,8 @@
     if (!target.closest('.site-header')) closeMenu();
     const add = target.closest('[data-add]');
     if (add && !add.disabled) addToCart(Number(add.dataset.add));
+    const boxChoice = target.closest('[data-box-product]');
+    if (boxChoice) chooseBoxProduct(boxChoice.dataset.boxCategory, Number(boxChoice.dataset.boxProduct));
     const detailDelta = target.closest('[data-detail-delta]');
     if (detailDelta) {
       const qty = $('#detail-qty');
@@ -527,6 +624,9 @@
   $('#stage-filter').addEventListener('change', renderProducts);
   $('#price-filter').addEventListener('change', renderProducts);
   $('#reset-shop').addEventListener('click', resetShop);
+  $('#box-surprise').addEventListener('click', surpriseDogBox);
+  $('#box-reset').addEventListener('click', resetDogBox);
+  $('#box-add-all').addEventListener('click', addDogBoxToCart);
   $('#open-saved').addEventListener('click', () => goToShop('saved'));
   $('#open-cart').addEventListener('click', () => {
     renderCart();
@@ -676,5 +776,6 @@
   saveCart();
   syncSavedButtons();
   renderProducts();
+  renderDogBox();
   renderDogs();
 })();
