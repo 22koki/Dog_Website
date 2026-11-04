@@ -56,6 +56,5 @@ Dog photographs downloaded from Unsplash image IDs: photo-1552053831-71594a27632
 Carousel entries include a source link to the underlying guidance:
 
 - [AKC: why dogs sniff](https://www.akc.org/expert-advice/advice/why-does-my-dog-sniff-everything/)
-- [RSPCA: interpreting dog behaviour](https://www.rspca.org.uk/adviceandwelfare/pets/dogs/behaviour/aggression)
 - [American College of Veterinary Ophthalmologists: canine colour vision](https://www.acvo.org/tips-treatments-tricks/vision-in-pets)
-- [Dogs Trust: body language and the play bow](https://www.dogstrust.org.uk/dog-advice/understanding-your-dog/body-language)
+- [Dogs Trust: tail signals, body language and the play bow](https://www.dogstrust.org.uk/dog-advice/understanding-your-dog/body-language)

@@ -39,6 +39,7 @@
   const storedFavorites = readStored('good-dog-favorites', []);
   const favorites = new Set(Array.isArray(storedFavorites) ? storedFavorites.filter(id => Number.isInteger(id) && productById.has(id)) : []);
   let orderPending = false;
+  let enquirySession = 0;
   let toastTimer;
   let boopCount = 0;
 
@@ -146,6 +147,7 @@
   }
 
   function goToShop(category = 'all') {
+    closeMenu();
     $('#search').value = '';
     setFilter(category);
     location.hash = 'shop';
@@ -279,6 +281,7 @@
   function openDog(id) {
     const dog = dogs.find(entry => entry.id === id);
     if (!dog) return;
+    enquirySession++;
     $('#dog-detail').innerHTML =
       '<img class="detail-photo" src="' + esc(img(dog.image)) + '" alt="' + esc('Illustrative photo for ' + dog.name + '’s sample profile') + '">' +
       '<h2 class="detail-title" id="dog-title" tabindex="-1">Hello, I’m ' + esc(dog.name) + '.</h2>' +
@@ -286,6 +289,7 @@
       '<p>' + esc(dog.description) + '</p><p class="sample-note">This is a sample profile with an illustrative photo. Arrange a meeting and verify the seller, health records and living conditions before making a commitment.</p>';
     $('#enquiry-form').reset();
     $('#enquiry-form').hidden = false;
+    $('#enquiry-form button[type="submit"]').disabled = false;
     $('#enquiry-form [name="dog"]').value = id;
     setMessage($('#enquiry-message'), '');
     openDialog($('#dog-dialog'), '#dog-title');
@@ -353,21 +357,23 @@
     const form = event.currentTarget;
     const button = form.querySelector('button[type="submit"]');
     if (button.disabled) return;
-    const selectedDog = form.elements.dog.value;
+    const submittedSession = enquirySession;
     const data = Object.fromEntries(new FormData(form));
     data.dog = Number(data.dog);
     button.disabled = true;
     setMessage($('#enquiry-message'), 'Sending your introduction…');
     try {
       const body = await submit('/api/enquiries/', data);
-      if (form.elements.dog.value === selectedDog) {
+      if (enquirySession === submittedSession) {
         setMessage($('#enquiry-message'), body.message);
         form.hidden = true;
         if ($('#dog-dialog').open) $('#dog-title').focus({preventScroll: true});
       }
     } catch (error) {
-      if (form.elements.dog.value === selectedDog) setMessage($('#enquiry-message'), error.message || 'We couldn’t send your enquiry. Please try again.', true);
-    } finally { button.disabled = false; }
+      if (enquirySession === submittedSession) setMessage($('#enquiry-message'), error.message || 'We couldn’t send your enquiry. Please try again.', true);
+    } finally {
+      if (enquirySession === submittedSession) button.disabled = false;
+    }
   });
 
   /* Site navigation is a real disclosure on small screens. */
@@ -382,6 +388,7 @@
     $('#main-nav').classList.toggle('is-open', open);
     $('#menu-toggle').setAttribute('aria-expanded', String(open));
     $('#menu-toggle').setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    if (open) $('#main-nav a').focus();
   });
   $('#main-nav').addEventListener('click', event => {
     const link = event.target.closest('a');
@@ -499,7 +506,7 @@
 
   const facts = [
     {title: 'Sniff detectives.', text: 'Dogs use scent to explore their surroundings and gather information about other dogs. There’s a whole world behind that sniff.', source: 'https://www.akc.org/expert-advice/advice/why-does-my-dog-sniff-everything/'},
-    {title: 'Read the whole dog.', text: 'A wagging tail can mean more than happiness. The ears, face and rest of the body help tell the story.', source: 'https://www.rspca.org.uk/adviceandwelfare/pets/dogs/behaviour/aggression'},
+    {title: 'Read the whole dog.', text: 'A wagging tail can mean more than happiness. The ears, face and rest of the body help tell the story.', source: 'https://www.dogstrust.org.uk/dog-advice/understanding-your-dog/body-language'},
     {title: 'A different rainbow.', text: 'Dogs can see colour! Blues and yellows are easier for them to distinguish than reds and greens.', source: 'https://www.acvo.org/tips-treatments-tricks/vision-in-pets'},
     {title: 'An invitation to play.', text: 'Front paws down, bottom up: a play bow often invites another dog to join the fun.', source: 'https://www.dogstrust.org.uk/dog-advice/understanding-your-dog/body-language'}
   ];
