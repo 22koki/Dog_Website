@@ -9,7 +9,7 @@ class StoreTests(TestCase):
         cls.product = Product.objects.create(name='Test toy', category='toys', description='Toy', price='650.00', stock=2, image='shop/images/toy.svg')
         cls.dog = Dog.objects.create(name='Sunny', breed='Retriever', age='8 months', personality='Friendly', description='Sample', price=45000, image='shop/images/golden.jpg')
     def order_data(self, **extra):
-        return {'name':'Test Customer','email':'test@example.com','phone':'0700000000','address':'Nairobi','items':[{'id':self.product.id,'quantity':2}],**extra}
+        return {'name':'Test Customer','email':'test@example.com','phone':'0700000000','address':'Nairobi','delivery_method':'delivery','payment_method':'mpesa','notes':'Gate B','items':[{'id':self.product.id,'quantity':2}],**extra}
     def post_order(self,data): return self.client.post('/api/orders/', data=json.dumps(data), content_type='application/json')
     def test_home(self):
         response = self.client.get('/')
@@ -23,9 +23,17 @@ class StoreTests(TestCase):
         self.assertEqual(str(order.total),'1300.00')
         self.assertEqual(order.items.get().quantity,2)
         self.assertEqual(order.status,'requested')
+        self.assertEqual(order.delivery_method,'delivery')
+        self.assertEqual(order.payment_method,'mpesa')
+        self.assertEqual(order.notes,'Gate B')
     def test_reject_invalid_baskets_without_creating_orders(self):
         for items in [[],[{'id':self.product.id,'quantity':3}],[{'id':self.product.id,'quantity':-1}],[{'id':99999,'quantity':1}],[{'id':self.product.id,'quantity':True}],[{'id':self.product.id,'quantity':1}]*2]:
             with self.subTest(items=items): self.assertEqual(self.post_order(self.order_data(items=items)).status_code,400)
+        self.assertFalse(Order.objects.exists())
+    def test_invalid_checkout_choices(self):
+        self.assertEqual(self.post_order(self.order_data(delivery_method='teleport')).status_code,400)
+        self.assertEqual(self.post_order(self.order_data(payment_method='crypto')).status_code,400)
+        self.assertEqual(self.post_order(self.order_data(delivery_method='pickup',payment_method='cod')).status_code,400)
         self.assertFalse(Order.objects.exists())
     def test_inactive_product(self):
         self.product.active=False;self.product.save()
