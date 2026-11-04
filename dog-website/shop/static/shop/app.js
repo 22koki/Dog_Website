@@ -201,16 +201,21 @@
     $('#search').focus({preventScroll: true});
   }
 
-  function addToCart(id) {
+  function addToCart(id, amount = 1) {
     const product = productById.get(id);
     if (!product) return;
-    if ((cart[id] || 0) >= stockLimit(product)) {
+    const next = (cart[id] || 0) + amount;
+    if (next > stockLimit(product)) {
       toast('That’s all the listed stock for this item.');
       return;
     }
-    cart[id] = (cart[id] || 0) + 1;
+    cart[id] = next;
     saveCart();
-    toast(product.name + ' is in the bag. Excellent choice!');
+    const bag = $('#open-cart');
+    bag.classList.remove('cart-pop');
+    requestAnimationFrame(() => bag.classList.add('cart-pop'));
+    setTimeout(() => bag.classList.remove('cart-pop'), 500);
+    toast(amount > 1 ? amount + ' × ' + product.name + ' are in the bag.' : product.name + ' is in the bag. Excellent choice!');
   }
 
   function toggleFavorite(id) {
@@ -313,7 +318,7 @@
       '<p class="product-detail-copy">' + esc(product.description) + '</p><p class="product-detail-copy">' + esc(profile.detail) + '</p>' +
       '<div class="product-specs"><span><b>Dog size</b>' + profile.sizes.map(x => esc(x)).join(', ') + '</span><span><b>Life stage</b>' + profile.stages.map(x => esc(x)).join(', ') + '</span><span><b>Stock</b>' + stockLimit(product) + ' listed</span><span><b>Delivery</b>Confirmed after request</span></div>' +
       '<p class="stock-note' + (available ? '' : ' sold-out') + '">' + (available ? 'In stock · final availability confirmed by the shop' : 'Currently sold out') + '</p>' +
-      '<div class="product-detail-actions"><button class="button dark" data-add="' + product.id + '"' + (available ? '' : ' disabled') + '>' + icon('plus') + (available ? 'Add to happy bag' : 'Sold out') + '</button>' + saveButton(product) + '</div></div></div>' +
+      '<div class="detail-buy-row"><div class="detail-quantity" aria-label="Choose quantity"><button data-detail-delta="-1" aria-label="Decrease quantity">' + icon('minus') + '</button><span id="detail-qty">1</span><button data-detail-delta="1" aria-label="Increase quantity">' + icon('plus') + '</button></div><div class="product-detail-actions"><button class="button dark" data-detail-add="' + product.id + '"' + (available ? '' : ' disabled') + '>' + icon('plus') + (available ? 'Add to happy bag' : 'Sold out') + '</button>' + saveButton(product) + '</div></div></div></div>' +
       (related.length ? '<div class="related-products"><span class="eyebrow">PAIRS WELL WITH</span><div>' + related.map(entry => '<button data-product="' + entry.id + '"><img src="' + esc(img(entry.image)) + '" alt=""><span><strong>' + esc(entry.name) + '</strong><small>' + money(entry.price) + '</small></span></button>').join('') + '</div></div>' : '') +
       '<p class="sample-note">Sample listing with representative photography and demo ratings. Replace with verified product specifications, images and reviews before launch.</p>';
     if ($('#product-dialog').open) $('#product-title').focus({preventScroll: true});
@@ -465,6 +470,16 @@
     if (!target.closest('.site-header')) closeMenu();
     const add = target.closest('[data-add]');
     if (add && !add.disabled) addToCart(Number(add.dataset.add));
+    const detailDelta = target.closest('[data-detail-delta]');
+    if (detailDelta) {
+      const qty = $('#detail-qty');
+      const current = Number(qty.textContent) || 1;
+      const productId = Number($('#product-detail [data-detail-add]')?.dataset.detailAdd);
+      const product = productById.get(productId);
+      qty.textContent = Math.max(1, Math.min(stockLimit(product), current + Number(detailDelta.dataset.detailDelta)));
+    }
+    const detailAdd = target.closest('[data-detail-add]');
+    if (detailAdd && !detailAdd.disabled) addToCart(Number(detailAdd.dataset.detailAdd), Number($('#detail-qty')?.textContent) || 1);
     const saved = target.closest('[data-save]');
     if (saved) toggleFavorite(Number(saved.dataset.save));
     const product = target.closest('[data-product]');
