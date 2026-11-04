@@ -133,3 +133,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 CSRF_TRUSTED_ORIGINS = [x for x in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if x]
+
+# Optional public WhatsApp contact number in international digits, e.g. 2547XXXXXXXX.
+GOOD_DOG_WHATSAPP_NUMBER = os.environ.get('GOOD_DOG_WHATSAPP_NUMBER', '')
