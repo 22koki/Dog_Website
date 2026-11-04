@@ -10,10 +10,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=7">
-  <script defer src="{% static 'shop/app.js' %}?v=6"></script>
+  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=8">
+  <script defer src="{% static 'shop/app.js' %}?v=7"></script>
 </head>
-<body data-static-root="{% get_static_prefix %}">
+<body data-static-root="{% get_static_prefix %}" data-whatsapp-number="{{ whatsapp_number }}">
   <a class="skip-link" href="#main">Skip to content</a>
   <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
@@ -36,7 +36,7 @@
     <div class="wrap header-row">
       <a href="#home" class="logo" aria-label="Good Dog Club home"><span class="logo-mark"><svg class="icon" aria-hidden="true"><use href="#i-paw"/></svg></span><span>good dog<span class="logo-sub">C L U B</span></span></a>
       <nav class="main-nav" id="main-nav" aria-label="Main navigation">
-        <a href="#shop">Shop the good stuff</a><a href="#build-box">Build a dog box</a><a href="#dogs">Meet the dogs</a><a href="#play">The fun corner <span aria-hidden="true">✳</span></a>
+        <a href="#shop">Shop the good stuff</a><a href="#build-box">Build a dog box</a><a href="#track-order">Track order</a><a href="#dogs">Meet the dogs</a><a href="#play">The fun corner <span aria-hidden="true">✳</span></a>
       </nav>
       <div class="header-actions">
         <button class="icon-button saved-button" id="open-saved" aria-label="View saved products"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg><span class="counter" id="saved-count">0</span></button>
@@ -215,13 +215,31 @@
       </div>
     </section>
 
+
+    <section id="track-order" class="tracking-section" aria-labelledby="tracking-title">
+      <div class="wrap tracking-layout">
+        <div class="tracking-copy">
+          <span class="eyebrow">WHERE ARE THE GOODIES?</span>
+          <h2 id="tracking-title">Track your<br><span class="serif-accent">happy delivery.</span></h2>
+          <p>Enter the order reference from checkout and the email used for the order. We use both so someone cannot look up another customer’s order by guessing a reference number.</p>
+          <form id="tracking-form" class="tracking-form">
+            <label>Order reference<input name="reference" required maxlength="30" placeholder="GDC-00012" autocomplete="off"></label>
+            <label>Order email<input name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email"></label>
+            <button class="button dark" type="submit">Track my order <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </form>
+          <p id="tracking-message" class="form-message" role="status"></p>
+        </div>
+        <div id="tracking-result" class="tracking-result" hidden></div>
+      </div>
+    </section>
+
     <section class="gallery-section" aria-labelledby="gallery-title">
       <div class="gallery-heading"><span class="eyebrow">THE GOOD DOG MOODBOARD</span><h2 id="gallery-title">All dogs. <span class="serif-accent">All love.</span></h2><p>Every personality belongs here.</p></div>
       <div class="photo-gallery"><figure><img src="{% static 'shop/images/portrait.jpg' %}" alt="Corgi puppy with big ears on orange" loading="lazy" width="1000" height="1509"><figcaption>tiny but mighty.</figcaption></figure><figure><img src="{% static 'shop/images/running.jpg' %}" alt="Two dogs enjoying a run together" loading="lazy" width="1000" height="668"><figcaption>professional zoomers.</figcaption></figure><figure><img src="{% static 'shop/images/pug.jpg' %}" alt="Pug wrapped up in a grey blanket" loading="lazy" width="1000" height="1333"><figcaption>weekend mode: on.</figcaption></figure><figure><img src="{% static 'shop/images/golden.jpg' %}" alt="Golden retriever bringing a flower" loading="lazy" width="1200" height="1924"><figcaption>your daily sunshine.</figcaption></figure><figure><img src="{% static 'shop/images/puppy.jpg' %}" alt="Dog in a yellow hoodie on blue" loading="lazy" width="1000" height="1250"><figcaption>dressed for the occasion.</figcaption></figure></div>
     </section>
   </main>
 
-  <footer class="site-footer"><div class="wrap"><div class="footer-top"><div><a href="#home" class="logo"><span class="logo-mark"><svg class="icon" aria-hidden="true"><use href="#i-paw"/></svg></span><span>good dog<span class="logo-sub">C L U B</span></span></a><p>Big love. Little paws. Good times.</p></div><nav aria-label="Footer navigation"><a href="#shop">Shop the good stuff</a><a href="#build-box">Build a dog box</a><a href="#dogs">Meet your best friend</a><a href="#play">Find your dog-parent vibe</a><a href="#story">Our little world</a><a href="{% static 'shop/photo-credits.html' %}">Photo credits</a></nav><a href="#home" class="back-top" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div><div class="footer-bottom"><small>© {% now 'Y' %} Good Dog Club. Made for dog people.</small><span>More love. More woof. <svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg></span></div></div></footer>
+  <footer class="site-footer"><div class="wrap"><div class="footer-top"><div><a href="#home" class="logo"><span class="logo-mark"><svg class="icon" aria-hidden="true"><use href="#i-paw"/></svg></span><span>good dog<span class="logo-sub">C L U B</span></span></a><p>Big love. Little paws. Good times.</p></div><nav aria-label="Footer navigation"><a href="#shop">Shop the good stuff</a><a href="#build-box">Build a dog box</a><a href="#track-order">Track an order</a><a href="#dogs">Meet your best friend</a><a href="#play">Find your dog-parent vibe</a><a href="#story">Our little world</a><a href="{% static 'shop/photo-credits.html' %}">Photo credits</a></nav><a href="#home" class="back-top" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div><div class="footer-bottom"><small>© {% now 'Y' %} Good Dog Club. Made for dog people.</small><span>More love. More woof. <svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg></span></div></div></footer>
 
   <dialog id="cart-dialog" class="cart-dialog" aria-labelledby="cart-title">
     <div class="dialog-top"><div><span class="eyebrow">EXCELLENT TASTE, HUMAN.</span><h2 id="cart-title" tabindex="-1">Your happy bag<span>.</span></h2></div><button class="icon-button" data-close aria-label="Close shopping bag"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
@@ -256,6 +274,11 @@
   <dialog id="product-dialog" class="product-dialog" aria-labelledby="product-title"><div class="dialog-top"><span class="eyebrow">TAKE A CLOSER SNIFF.</span><button class="icon-button" data-close aria-label="Close product details"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div><div id="product-detail"></div><div class="dialog-toast" role="status"></div></dialog>
   <dialog id="dog-dialog" class="dog-dialog" aria-labelledby="dog-title"><div class="dialog-top"><span class="eyebrow">HELLO, FUTURE BEST FRIEND.</span><button class="icon-button" data-close aria-label="Close dog profile"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div><div id="dog-detail"></div><form id="enquiry-form"><input type="hidden" name="dog"><h3>Introduce yourself.</h3><label>Your name<input name="name" required maxlength="100" autocomplete="name"></label><label>Email<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label>Tell us about the home you can offer<textarea name="message" required maxlength="2000"></textarea></label><button class="button dark full" type="submit">Send an enquiry <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button></form><p class="form-message" id="enquiry-message" role="status"></p><div class="dialog-toast" role="status"></div></dialog>
   <dialog id="quiz-dialog" class="quiz-dialog" aria-labelledby="quiz-title"><div class="dialog-top"><span class="eyebrow">THE DOG-PARENT VIBE CHECK</span><button class="icon-button" data-close aria-label="Close quiz"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div><div id="quiz-body"></div><div class="dialog-toast" role="status"></div></dialog>
+  {% if whatsapp_number %}
+  <a class="whatsapp-float" id="whatsapp-contact" href="#" target="_blank" rel="noopener noreferrer" aria-label="Chat with Good Dog Club on WhatsApp">
+    <span class="whatsapp-bubble">Need a human?</span><span class="whatsapp-mark">WA</span>
+  </a>
+  {% endif %}
   <div id="toast" role="status"></div>
   {{ catalog|json_script:"catalog-data" }}
 </body>
