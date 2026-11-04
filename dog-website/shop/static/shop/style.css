@@ -837,3 +837,29 @@ html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="
   .detail-buy-row { grid-template-columns:1fr; }
   .detail-quantity { width:max-content; }
 }
+
+
+/* Paw cursor: use real static SVG assets for better Chrome/Windows compatibility. */
+@media (pointer: fine) {
+  html, body {
+    cursor: url("images/paw-cursor.svg") 8 8, auto;
+  }
+
+  a,
+  button,
+  [role="button"],
+  select,
+  summary,
+  input[type="checkbox"],
+  input[type="radio"] {
+    cursor: url("images/paw-pointer.svg") 8 8, pointer;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="search"],
+  textarea {
+    cursor: text;
+  }
+}
