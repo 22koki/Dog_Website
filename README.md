@@ -6,12 +6,15 @@ A playful Django storefront for dogs and their people: dog profiles, food, toys,
 
 - Oversized headlines, a layered dog-photo hero, clickable portrait selectors and a small “boop the snoot” interaction.
 - Photograph-led category tiles, a walk-and-wag feature, a plum dog showcase and a scrollable photo moodboard on phones.
-- Product search, category and price controls, quick-view dialogs, saved favourites and a persistent shopping bag. Favourites and the bag are saved in this browser; no account is required.
-- Responsive mobile navigation, an order-request side panel and detailed dog-enquiry dialogs.
+- Product search, category, dog-size, life-stage and price controls, richer product details, related-product suggestions, saved favourites and a persistent shopping bag. Favourites and the bag are saved in this browser; no account is required.
+- Richer sample dog profiles with compatibility/health verification prompts, plus detailed enquiry dialogs.
+- A cart free-delivery progress meter, add-on recommendations and a checkout request flow with delivery/pickup and payment-preference choices.
+- Clearly labelled demo review cards for storefront design; replace them with verified customer reviews before launch.
+- Responsive mobile navigation and accessible dialogs throughout.
 - Source-linked fun facts and a three-question personality quiz with a back button and a matching collection.
 - Keyboard navigation, named native dialogs, focus restoration and a motion-pause control. Device reduced-motion preferences take priority.
 
-The storefront uses bundled photographs of real dogs, dog food, chew toys, a tennis ball, a leather lead, a cushioned bed and a ceramic bowl. Product photos appear in collection tiles, product cards, quick views and the shopping bag. It introduces no build step, new dependency or database migration.
+The storefront uses bundled photographs of real dogs, dog food, chew toys, a tennis ball, a leather lead, a cushioned bed and a ceramic bowl. Product photos appear in collection tiles, product cards, product details and the shopping bag. The expanded checkout adds a Django migration for delivery method, payment preference and optional order notes; it adds no new dependency or frontend build step.
 
 Existing demo catalogues automatically display the new photographs even when their saved image paths still refer to the original six SVG illustrations. Custom image paths are preserved; there is no need to reseed or recreate products. New demo catalogues use the photograph paths directly.
 
@@ -33,11 +36,11 @@ Create a staff login using manage.py createsuperuser, then manage products, dogs
 
 Seeded listings, prices and dog profiles are samples. The real product photographs are representative images for the sample catalogue. Replace the listings and photographs with your actual inventory before launch. The repeatable seed command preserves existing entries.
 
-Orders are requests awaiting staff confirmation. Prices are calculated by the server. Requests do not reserve inventory, charge money or automatically send notifications. Staff must confirm availability, delivery and payment. Dog enquiries are saved for staff review.
+Orders are requests awaiting staff confirmation. Prices are calculated by the server. Customers can choose delivery or pickup and select M-PESA-after-confirmation, cash-on-delivery or pay-on-pickup where appropriate. These are payment preferences only: the site does not send an M-PESA STK push, reserve inventory, charge money or automatically send notifications. Staff must confirm availability, delivery and payment. Dog enquiries are saved for staff review.
 
 ## Validation
 
-All eight existing backend tests passed for the product-photography revision. They cover rendering, authoritative pricing, invalid baskets, unavailable listings, enquiries, CSRF and repeatable seed data.
+The store-experience revision extends backend coverage to checkout delivery/payment validation while retaining rendering, authoritative pricing, invalid-basket, unavailable-listing, enquiry, CSRF and repeatable-seed tests. Run the test command below after pulling the branch.
 
 The new JPEG files were decoded and visually inspected. JavaScript syntax, the six legacy-to-photo path mappings, custom-path preservation and static asset references were checked. Browser rendering could not be completed: the editing environment blocks Chromium's local sockets, and its automatic approval policy rejected the required additional permissions. Desktop/mobile screenshot verification remains outstanding; source checks do not replace a browser review.
 

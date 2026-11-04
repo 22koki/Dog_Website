@@ -16,8 +16,8 @@ class ItemInline(admin.TabularInline):
     def has_add_permission(self, request, obj=None): return False
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'total', 'status', 'created_at')
-    readonly_fields = ('name', 'email', 'phone', 'address', 'total', 'created_at')
+    list_display = ('id', 'name', 'total', 'delivery_method', 'payment_method', 'status', 'created_at')
+    readonly_fields = ('name', 'email', 'phone', 'address', 'delivery_method', 'payment_method', 'notes', 'total', 'created_at')
     inlines = (ItemInline,)
-    list_filter = ('status',)
+    list_filter = ('status', 'delivery_method', 'payment_method')
 admin.site.register(Enquiry)
