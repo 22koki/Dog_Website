@@ -141,8 +141,10 @@ def initiate_mpesa(request):
         order = order_from_reference_email(data)
         if order.payment_method != 'mpesa':
             raise ValueError('This order was not set to M-PESA.')
-        if order.status == 'cancelled':
-            raise ValueError('A cancelled order cannot be paid.')
+        if order.status not in {'confirmed', 'preparing', 'out_for_delivery'}:
+            if order.status == 'requested':
+                raise ValueError('M-PESA payment unlocks after the shop confirms this order.')
+            raise ValueError('This order is not currently eligible for M-PESA payment.')
         phone = data.get('phone') or order.phone
         if not isinstance(phone, str) or len(phone.strip()) > 30:
             raise ValueError('Please enter a valid M-PESA phone number.')
