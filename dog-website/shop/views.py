@@ -7,13 +7,15 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.conf import settings
 from .models import Product, Dog, Order, OrderItem, Enquiry
 
 @ensure_csrf_cookie
 def home(request):
     products = list(Product.objects.filter(active=True).order_by('id').values())
     dogs = list(Dog.objects.filter(available=True).order_by('id').values())
-    return render(request, 'shop/index.html', {'catalog': {'products': products, 'dogs': dogs}})
+    whatsapp_number = ''.join(ch for ch in getattr(settings, 'GOOD_DOG_WHATSAPP_NUMBER', '') if ch.isdigit())
+    return render(request, 'shop/index.html', {'catalog': {'products': products, 'dogs': dogs}, 'whatsapp_number': whatsapp_number})
 
 def payload(request):
     try:
@@ -80,3 +82,31 @@ def enquiry(request):
         Enquiry.objects.create(dog=dog, name=name, email=email, message=message)
         return JsonResponse({'message': 'Enquiry received. The team can now review your introduction.'}, status=201)
     except ValueError as exc: return JsonResponse({'error': str(exc)}, status=400)
+
+
+@require_POST
+def track_order(request):
+    try:
+        data = payload(request)
+        reference = field(data, 'reference', 30).upper()
+        email = field(data, 'email', 254)
+        try: validate_email(email)
+        except ValidationError: raise ValueError('Please enter a valid email address.')
+        if not reference.startswith('GDC-') or not reference[4:].isdigit():
+            raise ValueError('We could not find an order matching those details.')
+        order_id = int(reference[4:])
+        order = Order.objects.prefetch_related('items').filter(pk=order_id, email__iexact=email).first()
+        if not order:
+            raise ValueError('We could not find an order matching those details.')
+        return JsonResponse({
+            'reference': f'GDC-{order.id:05d}',
+            'status': order.status,
+            'status_label': order.get_status_display(),
+            'created_at': order.created_at.isoformat(),
+            'total': str(order.total),
+            'delivery_method': order.get_delivery_method_display(),
+            'payment_method': order.get_payment_method_display(),
+            'items': [{'name': item.name, 'quantity': item.quantity, 'unit_price': str(item.unit_price)} for item in order.items.all()],
+        })
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)

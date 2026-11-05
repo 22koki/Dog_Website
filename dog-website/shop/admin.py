@@ -20,4 +20,5 @@ class OrderAdmin(admin.ModelAdmin):
     readonly_fields = ('name', 'email', 'phone', 'address', 'delivery_method', 'payment_method', 'notes', 'total', 'created_at')
     inlines = (ItemInline,)
     list_filter = ('status', 'delivery_method', 'payment_method')
+    search_fields = ('name', 'email', 'phone')
 admin.site.register(Enquiry)

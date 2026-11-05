@@ -35,6 +35,24 @@ class StoreTests(TestCase):
         self.assertEqual(self.post_order(self.order_data(payment_method='crypto')).status_code,400)
         self.assertEqual(self.post_order(self.order_data(delivery_method='pickup',payment_method='cod')).status_code,400)
         self.assertFalse(Order.objects.exists())
+    def test_order_tracking_requires_matching_reference_and_email(self):
+        created=self.post_order(self.order_data())
+        self.assertEqual(created.status_code,201)
+        reference=created.json()['reference']
+        ok=self.client.post('/api/orders/track/',data=json.dumps({'reference':reference,'email':'test@example.com'}),content_type='application/json')
+        self.assertEqual(ok.status_code,200)
+        self.assertEqual(ok.json()['status'],'requested')
+        self.assertEqual(ok.json()['items'][0]['quantity'],2)
+        self.assertNotIn('address',ok.json())
+        bad=self.client.post('/api/orders/track/',data=json.dumps({'reference':reference,'email':'other@example.com'}),content_type='application/json')
+        self.assertEqual(bad.status_code,400)
+        malformed=self.client.post('/api/orders/track/',data=json.dumps({'reference':'GDC-NOPE','email':'test@example.com'}),content_type='application/json')
+        self.assertEqual(malformed.status_code,400)
+    def test_extended_order_statuses(self):
+        order=Order.objects.create(name='Test',email='test@example.com',phone='0700',address='Nairobi',total='10.00',status='preparing')
+        self.assertEqual(order.get_status_display(),'Preparing')
+        order.status='out_for_delivery';order.save()
+        self.assertEqual(order.get_status_display(),'Out for delivery')
     def test_inactive_product(self):
         self.product.active=False;self.product.save()
         self.assertEqual(self.post_order(self.order_data()).status_code,400)
@@ -53,6 +71,7 @@ class StoreTests(TestCase):
         response=client.get('/')
         self.assertEqual(client.post('/api/orders/',data=json.dumps(self.order_data()),content_type='application/json',HTTP_X_CSRFTOKEN=response.cookies['csrftoken'].value).status_code,201)
         self.assertEqual(self.client.get('/api/orders/').status_code,405)
+        self.assertEqual(self.client.get('/api/orders/track/').status_code,405)
     def test_seed_is_repeatable(self):
         call_command('seed_demo',verbosity=0)
         count=(Product.objects.count(),Dog.objects.count())

@@ -33,7 +33,7 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=20, choices=[('mpesa', 'M-PESA after confirmation'), ('cod', 'Cash on delivery'), ('pickup', 'Pay on pickup')], default='mpesa')
     notes = models.TextField(max_length=600, blank=True)
     total = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=30, choices=[('requested', 'Awaiting confirmation'), ('confirmed', 'Confirmed'), ('completed', 'Completed'), ('cancelled', 'Cancelled')], default='requested')
+    status = models.CharField(max_length=30, choices=[('requested', 'Awaiting confirmation'), ('confirmed', 'Confirmed'), ('preparing', 'Preparing'), ('out_for_delivery', 'Out for delivery'), ('completed', 'Completed'), ('cancelled', 'Cancelled')], default='requested')
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self): return f'Order #{self.pk} — {self.name}'
 

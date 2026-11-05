@@ -12,6 +12,7 @@
   const money = amount => 'KSh ' + currency.format(Number(amount));
   const esc = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character]));
   const staticRoot = document.body.dataset.staticRoot || '/static/';
+  const whatsappNumber = (document.body.dataset.whatsappNumber || '').replace(/\D/g, '');
   // Resolve the original demo illustrations for existing catalogues as well.
   // Custom image paths are preserved and no reseeding is required.
   const legacyProductPhotos = new Map([
@@ -35,6 +36,7 @@
   const productAlt = product => productPhotoDescriptions.get(resolvedImage(product.image)) || 'Product image: ' + product.name;
   const icon = name => '<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-' + name + '"/></svg>';
   const stockLimit = product => Math.min(99, Math.max(0, Number(product.stock) || 0));
+  const whatsappUrl = message => whatsappNumber ? 'https://wa.me/' + whatsappNumber + '?text=' + encodeURIComponent(message) : '';
   const freeDeliveryGoal = 5000;
   const productProfiles = {
     food: {sizes:['small','medium','large'], stages:['puppy','adult','senior'], detail:'A balanced everyday option for routine feeding. Check the final pack label for ingredients, feeding guidance and any dietary restrictions.'},
@@ -494,6 +496,17 @@
       form.hidden = true;
       renderCart();
       setMessage($('#order-message'), 'Request ' + body.reference + ' received (' + money(body.total) + '). The shop will confirm stock, delivery and payment instructions. No payment has been taken.');
+      writeStored('good-dog-last-order', {reference: body.reference, email: data.email});
+      const trackRef = $('#tracking-form [name="reference"]');
+      const trackEmail = $('#tracking-form [name="email"]');
+      if (trackRef && trackEmail) {
+        trackRef.value = body.reference;
+        trackEmail.value = data.email;
+      }
+      if (whatsappNumber) {
+        const link = $('#whatsapp-contact');
+        if (link) link.href = whatsappUrl('Hi Good Dog Club! I just placed order ' + body.reference + ' and would like help with it.');
+      }
     } catch (error) {
       setMessage($('#order-message'), error.message || 'We couldn’t send your request. Please try again.', true);
     } finally {
@@ -652,6 +665,77 @@
     setMessage($('#order-message'), '');
     $('#order-form input').focus();
   });
+
+
+  const trackingStages = [
+    ['requested', 'Order requested'],
+    ['confirmed', 'Confirmed'],
+    ['preparing', 'Preparing'],
+    ['out_for_delivery', 'Out for delivery'],
+    ['completed', 'Completed']
+  ];
+
+  function trackingStepState(current, step) {
+    if (current === 'cancelled') return step === 'requested' ? 'complete' : '';
+    const currentIndex = trackingStages.findIndex(([key]) => key === current);
+    const stepIndex = trackingStages.findIndex(([key]) => key === step);
+    if (currentIndex === -1 || stepIndex === -1) return '';
+    if (stepIndex < currentIndex) return 'complete';
+    if (stepIndex === currentIndex) return 'current';
+    return '';
+  }
+
+  function renderTracking(order) {
+    const cancelled = order.status === 'cancelled';
+    const created = new Date(order.created_at);
+    const items = order.items.map(item =>
+      '<li><span>' + esc(item.quantity + ' × ' + item.name) + '</span><strong>' + money(Number(item.unit_price) * item.quantity) + '</strong></li>'
+    ).join('');
+    const timeline = trackingStages.map(([key, label]) =>
+      '<div class="tracking-step ' + trackingStepState(order.status, key) + '"><span class="tracking-dot">' + icon('paw') + '</span><div><strong>' + esc(label) + '</strong><small>' + (key === order.status ? 'Current status' : '') + '</small></div></div>'
+    ).join('');
+    $('#tracking-result').hidden = false;
+    $('#tracking-result').innerHTML =
+      '<div class="tracking-result-head"><div><span class="eyebrow">ORDER ' + esc(order.reference) + '</span><h3>' + esc(cancelled ? 'This order was cancelled.' : order.status_label) + '</h3></div><span class="tracking-status-pill ' + (cancelled ? 'cancelled' : '') + '">' + esc(order.status_label) + '</span></div>' +
+      '<p class="tracking-date">Placed ' + created.toLocaleString('en-KE', {dateStyle:'medium', timeStyle:'short'}) + '</p>' +
+      (cancelled ? '<div class="tracking-cancelled">This order is marked cancelled. Contact the shop if you need help understanding what happened.</div>' : '<div class="tracking-timeline">' + timeline + '</div>') +
+      '<div class="tracking-order-meta"><span><b>Delivery</b>' + esc(order.delivery_method) + '</span><span><b>Payment</b>' + esc(order.payment_method) + '</span><span><b>Total</b>' + money(order.total) + '</span></div>' +
+      '<div class="tracking-items"><span class="eyebrow">IN THIS ORDER</span><ul>' + items + '</ul></div>' +
+      (whatsappNumber ? '<a class="button whatsapp-button" href="' + esc(whatsappUrl('Hi Good Dog Club! I need help with order ' + order.reference + '.')) + '" target="_blank" rel="noopener noreferrer">Ask about this order on WhatsApp <span aria-hidden="true">↗</span></a>' : '<p class="muted">WhatsApp contact will appear here once the shop configures its business number.</p>');
+  }
+
+  $('#tracking-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const button = form.querySelector('button[type="submit"]');
+    button.disabled = true;
+    setMessage($('#tracking-message'), 'Checking your order…');
+    $('#tracking-result').hidden = true;
+    try {
+      const body = await submit('/api/orders/track/', Object.fromEntries(new FormData(form)));
+      renderTracking(body);
+      setMessage($('#tracking-message'), '');
+    } catch (error) {
+      setMessage($('#tracking-message'), error.message || 'We could not find that order.', true);
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  const lastOrder = readStored('good-dog-last-order', null);
+  if (lastOrder && typeof lastOrder === 'object') {
+    const refInput = $('#tracking-form [name="reference"]');
+    const emailInput = $('#tracking-form [name="email"]');
+    if (refInput && emailInput) {
+      refInput.value = typeof lastOrder.reference === 'string' ? lastOrder.reference : '';
+      emailInput.value = typeof lastOrder.email === 'string' ? lastOrder.email : '';
+    }
+  }
+
+  if (whatsappNumber) {
+    const contact = $('#whatsapp-contact');
+    if (contact) contact.href = whatsappUrl('Hi Good Dog Club! I have a question about your dogs or products.');
+  }
 
   /* Manually switched portraits and a finite, keyboard-friendly little delight. */
   const portraits = [
