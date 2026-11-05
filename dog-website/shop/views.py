@@ -11,7 +11,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.conf import settings
 from .models import Product, Dog, Order, OrderItem, Enquiry, MpesaPayment
-from .mpesa import MpesaError, stk_push, callback_metadata, parse_transaction_date, configured as mpesa_configured
+from .mpesa import MpesaError, stk_push, callback_metadata, parse_transaction_date, charge_amount, configured as mpesa_configured
 
 @ensure_csrf_cookie
 def home(request):
@@ -152,7 +152,7 @@ def initiate_mpesa(request):
 
         payment, _ = MpesaPayment.objects.get_or_create(
             order=order,
-            defaults={'phone': phone.strip(), 'amount': order.total},
+            defaults={'phone': phone.strip(), 'amount': charge_amount(order.total)},
         )
         if payment.status == 'paid':
             return JsonResponse({'reference': f'GDC-{order.id:05d}', **payment_payload(order)})
@@ -160,7 +160,7 @@ def initiate_mpesa(request):
             return JsonResponse({'reference': f'GDC-{order.id:05d}', **payment_payload(order)})
 
         payment.phone = phone.strip()
-        payment.amount = order.total
+        payment.amount = charge_amount(order.total)
         payment.status = 'initiated'
         payment.result_code = ''
         payment.result_message = ''
@@ -234,7 +234,8 @@ def mpesa_callback(request, token):
             paid_amount = Decimal('-1')
         if paid_amount != payment.amount:
             payment.status = 'failed'
-            payment.result_message = 'Payment callback amount did not match the order total.'
+            payment.result_message = 'Payment callback amount did not match the expected M-PESA charge.'
+            payment.completed_at = timezone.now()
         else:
             payment.status = 'paid'
             payment.receipt = str(metadata.get('MpesaReceiptNumber', ''))[:80]
