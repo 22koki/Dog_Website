@@ -13,6 +13,7 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character]));
   const staticRoot = document.body.dataset.staticRoot || '/static/';
   const whatsappNumber = (document.body.dataset.whatsappNumber || '').replace(/\D/g, '');
+  const mpesaEnabled = document.body.dataset.mpesaEnabled === 'true';
   // Resolve the original demo illustrations for existing catalogues as well.
   // Custom image paths are preserved and no reseeding is required.
   const legacyProductPhotos = new Map([
@@ -74,6 +75,7 @@
   let enquirySession = 0;
   let toastTimer;
   let boopCount = 0;
+  let mpesaPollTimer;
 
   /* Respect both the operating system and the page's pause control. */
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -576,6 +578,13 @@
     const target = event.target;
     if (!(target instanceof Element)) return;
     if (!target.closest('.site-header')) closeMenu();
+    const mpesaPay = target.closest('[data-mpesa-pay]');
+    if (mpesaPay && !mpesaPay.disabled) startMpesaPayment(mpesaPay.dataset.mpesaPay);
+    const mpesaRefresh = target.closest('[data-mpesa-refresh]');
+    if (mpesaRefresh) {
+      const email = $('#tracking-form [name="email"]').value.trim();
+      refreshTrackedOrder(mpesaRefresh.dataset.mpesaRefresh, email).catch(error => toast(error.message || 'Could not refresh payment.'));
+    }
     const add = target.closest('[data-add]');
     if (add && !add.disabled) addToCart(Number(add.dataset.add));
     const boxChoice = target.closest('[data-box-product]');
@@ -667,6 +676,71 @@
   });
 
 
+
+  function mpesaPaymentCard(order) {
+    if (order.payment_method_code !== 'mpesa') return '';
+    const payment = order.payment || {status:'not_started', status_label:'Not started', receipt:'', message:''};
+    if (payment.status === 'paid') {
+      return '<div class="mpesa-card paid"><div class="mpesa-card-head"><span class="mpesa-logo">M-PESA</span><strong>Payment received</strong></div>' +
+        '<p>Your payment is confirmed.' + (payment.receipt ? ' Receipt: <b>' + esc(payment.receipt) + '</b>.' : '') + '</p></div>';
+    }
+    if (order.status === 'requested') {
+      return '<div class="mpesa-card waiting"><div class="mpesa-card-head"><span class="mpesa-logo">M-PESA</span><strong>Waiting for shop confirmation</strong></div><p>The STK Push unlocks after the shop confirms stock and delivery.</p></div>';
+    }
+    if (!mpesaEnabled) {
+      return '<div class="mpesa-card waiting"><div class="mpesa-card-head"><span class="mpesa-logo">M-PESA</span><strong>Payment setup pending</strong></div><p>This shop has not configured Daraja credentials yet.</p></div>';
+    }
+    if (payment.status === 'pending') {
+      return '<div class="mpesa-card pending"><div class="mpesa-card-head"><span class="mpesa-logo">M-PESA</span><strong>Check your phone</strong></div><p>' + esc(payment.message || 'Enter your M-PESA PIN on the STK prompt to complete payment.') + '</p><button class="mpesa-refresh" data-mpesa-refresh="' + esc(order.reference) + '">Refresh payment status</button></div>';
+    }
+    const retry = payment.status === 'failed' || payment.status === 'cancelled';
+    return '<div class="mpesa-card ready"><div class="mpesa-card-head"><span class="mpesa-logo">M-PESA</span><strong>' + (retry ? 'Try payment again' : 'Ready for payment') + '</strong></div>' +
+      (payment.message ? '<p class="mpesa-last-message">' + esc(payment.message) + '</p>' : '<p>We’ll send an STK Push to the phone used at checkout. You can enter another Safaricom number below.</p>') +
+      '<label class="mpesa-phone-label">M-PESA phone (optional)<input id="mpesa-phone" type="tel" inputmode="tel" placeholder="07XX XXX XXX"></label>' +
+      '<button class="button mpesa-pay-button" data-mpesa-pay="' + esc(order.reference) + '">' + (retry ? 'Send another STK Push' : 'Send STK Push') + ' <span aria-hidden="true">→</span></button></div>';
+  }
+
+  async function refreshTrackedOrder(reference, email) {
+    const tracked = await submit('/api/orders/track/', {reference, email});
+    renderTracking(tracked);
+    return tracked;
+  }
+
+  function beginMpesaPolling(reference, email, attempt = 0) {
+    clearTimeout(mpesaPollTimer);
+    if (attempt >= 15) return;
+    mpesaPollTimer = setTimeout(async () => {
+      try {
+        const status = await submit('/api/payments/mpesa/status/', {reference, email});
+        if (status.status === 'pending' || status.status === 'initiated') {
+          beginMpesaPolling(reference, email, attempt + 1);
+          return;
+        }
+        await refreshTrackedOrder(reference, email);
+      } catch {
+        beginMpesaPolling(reference, email, attempt + 1);
+      }
+    }, 4000);
+  }
+
+  async function startMpesaPayment(reference) {
+    const email = $('#tracking-form [name="email"]').value.trim();
+    const phone = $('#mpesa-phone')?.value.trim() || '';
+    const button = $('[data-mpesa-pay="' + CSS.escape(reference) + '"]');
+    if (button) button.disabled = true;
+    try {
+      const body = await submit('/api/payments/mpesa/initiate/', {reference, email, phone});
+      await refreshTrackedOrder(reference, email);
+      if (body.status === 'pending') beginMpesaPolling(reference, email);
+    } catch (error) {
+      toast(error.message || 'Could not start M-PESA payment.');
+      await refreshTrackedOrder(reference, email).catch(() => {});
+    } finally {
+      const current = $('[data-mpesa-pay="' + CSS.escape(reference) + '"]');
+      if (current) current.disabled = false;
+    }
+  }
+
   const trackingStages = [
     ['requested', 'Order requested'],
     ['confirmed', 'Confirmed'],
@@ -700,6 +774,7 @@
       '<p class="tracking-date">Placed ' + created.toLocaleString('en-KE', {dateStyle:'medium', timeStyle:'short'}) + '</p>' +
       (cancelled ? '<div class="tracking-cancelled">This order is marked cancelled. Contact the shop if you need help understanding what happened.</div>' : '<div class="tracking-timeline">' + timeline + '</div>') +
       '<div class="tracking-order-meta"><span><b>Delivery</b>' + esc(order.delivery_method) + '</span><span><b>Payment</b>' + esc(order.payment_method) + '</span><span><b>Total</b>' + money(order.total) + '</span></div>' +
+      mpesaPaymentCard(order) +
       '<div class="tracking-items"><span class="eyebrow">IN THIS ORDER</span><ul>' + items + '</ul></div>' +
       (whatsappNumber ? '<a class="button whatsapp-button" href="' + esc(whatsappUrl('Hi Good Dog Club! I need help with order ' + order.reference + '.')) + '" target="_blank" rel="noopener noreferrer">Ask about this order on WhatsApp <span aria-hidden="true">↗</span></a>' : '<p class="muted">WhatsApp contact will appear here once the shop configures its business number.</p>');
   }
@@ -709,6 +784,7 @@
     const form = event.currentTarget;
     const button = form.querySelector('button[type="submit"]');
     button.disabled = true;
+    clearTimeout(mpesaPollTimer);
     setMessage($('#tracking-message'), 'Checking your order…');
     $('#tracking-result').hidden = true;
     try {
