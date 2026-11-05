@@ -1,21 +1,24 @@
 import json
+import secrets
 from decimal import Decimal
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 from django.conf import settings
-from .models import Product, Dog, Order, OrderItem, Enquiry
+from .models import Product, Dog, Order, OrderItem, Enquiry, MpesaPayment
+from .mpesa import MpesaError, stk_push, callback_metadata, parse_transaction_date, charge_amount, configured as mpesa_configured
 
 @ensure_csrf_cookie
 def home(request):
     products = list(Product.objects.filter(active=True).order_by('id').values())
     dogs = list(Dog.objects.filter(available=True).order_by('id').values())
     whatsapp_number = ''.join(ch for ch in getattr(settings, 'GOOD_DOG_WHATSAPP_NUMBER', '') if ch.isdigit())
-    return render(request, 'shop/index.html', {'catalog': {'products': products, 'dogs': dogs}, 'whatsapp_number': whatsapp_number})
+    return render(request, 'shop/index.html', {'catalog': {'products': products, 'dogs': dogs}, 'whatsapp_number': whatsapp_number, 'mpesa_enabled': mpesa_configured()})
 
 def payload(request):
     try:
@@ -84,20 +87,38 @@ def enquiry(request):
     except ValueError as exc: return JsonResponse({'error': str(exc)}, status=400)
 
 
+def order_from_reference_email(data):
+    reference = field(data, 'reference', 30).upper()
+    email = field(data, 'email', 254)
+    try: validate_email(email)
+    except ValidationError: raise ValueError('Please enter a valid email address.')
+    if not reference.startswith('GDC-') or not reference[4:].isdigit():
+        raise ValueError('We could not find an order matching those details.')
+    order = Order.objects.filter(pk=int(reference[4:]), email__iexact=email).first()
+    if not order:
+        raise ValueError('We could not find an order matching those details.')
+    return order
+
+
+def payment_payload(order):
+    try:
+        payment = order.mpesa_payment
+    except MpesaPayment.DoesNotExist:
+        return {'status': 'not_started', 'status_label': 'Not started', 'receipt': '', 'message': ''}
+    return {
+        'status': payment.status,
+        'status_label': payment.get_status_display(),
+        'receipt': payment.receipt,
+        'message': payment.result_message,
+    }
+
+
 @require_POST
 def track_order(request):
     try:
         data = payload(request)
-        reference = field(data, 'reference', 30).upper()
-        email = field(data, 'email', 254)
-        try: validate_email(email)
-        except ValidationError: raise ValueError('Please enter a valid email address.')
-        if not reference.startswith('GDC-') or not reference[4:].isdigit():
-            raise ValueError('We could not find an order matching those details.')
-        order_id = int(reference[4:])
-        order = Order.objects.prefetch_related('items').filter(pk=order_id, email__iexact=email).first()
-        if not order:
-            raise ValueError('We could not find an order matching those details.')
+        order = order_from_reference_email(data)
+        order = Order.objects.prefetch_related('items').get(pk=order.pk)
         return JsonResponse({
             'reference': f'GDC-{order.id:05d}',
             'status': order.status,
@@ -106,7 +127,122 @@ def track_order(request):
             'total': str(order.total),
             'delivery_method': order.get_delivery_method_display(),
             'payment_method': order.get_payment_method_display(),
+            'payment_method_code': order.payment_method,
+            'payment': payment_payload(order),
             'items': [{'name': item.name, 'quantity': item.quantity, 'unit_price': str(item.unit_price)} for item in order.items.all()],
         })
     except ValueError as exc:
         return JsonResponse({'error': str(exc)}, status=400)
+
+
+@require_POST
+def initiate_mpesa(request):
+    try:
+        data = payload(request)
+        order = order_from_reference_email(data)
+        if order.payment_method != 'mpesa':
+            raise ValueError('This order was not set to M-PESA.')
+        if order.status not in {'confirmed', 'preparing', 'out_for_delivery'}:
+            if order.status == 'requested':
+                raise ValueError('M-PESA payment unlocks after the shop confirms this order.')
+            raise ValueError('This order is not currently eligible for M-PESA payment.')
+        phone = data.get('phone') or order.phone
+        if not isinstance(phone, str) or len(phone.strip()) > 30:
+            raise ValueError('Please enter a valid M-PESA phone number.')
+
+        payment, _ = MpesaPayment.objects.get_or_create(
+            order=order,
+            defaults={'phone': phone.strip(), 'amount': charge_amount(order.total)},
+        )
+        if payment.status == 'paid':
+            return JsonResponse({'reference': f'GDC-{order.id:05d}', **payment_payload(order)})
+        if payment.status == 'pending' and payment.checkout_request_id:
+            return JsonResponse({'reference': f'GDC-{order.id:05d}', **payment_payload(order)})
+
+        payment.phone = phone.strip()
+        payment.amount = charge_amount(order.total)
+        payment.status = 'initiated'
+        payment.result_code = ''
+        payment.result_message = ''
+        payment.receipt = ''
+        payment.completed_at = None
+        payment.raw_callback = {}
+        payment.save()
+
+        try:
+            response, normalized_phone = stk_push(order, phone)
+        except MpesaError as exc:
+            payment.status = 'failed'
+            payment.result_message = str(exc)
+            payment.completed_at = timezone.now()
+            payment.save(update_fields=['status', 'result_message', 'completed_at'])
+            return JsonResponse({'error': str(exc), 'payment_status': 'failed'}, status=503)
+
+        payment.phone = normalized_phone
+        payment.status = 'pending'
+        payment.merchant_request_id = str(response.get('MerchantRequestID', ''))
+        payment.checkout_request_id = str(response.get('CheckoutRequestID', ''))
+        payment.result_message = str(response.get('CustomerMessage') or response.get('ResponseDescription') or 'STK Push sent.')
+        payment.save(update_fields=['phone', 'status', 'merchant_request_id', 'checkout_request_id', 'result_message'])
+        return JsonResponse({
+            'reference': f'GDC-{order.id:05d}',
+            **payment_payload(order),
+        }, status=201)
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+
+
+@require_POST
+def mpesa_status(request):
+    try:
+        order = order_from_reference_email(payload(request))
+        if order.payment_method != 'mpesa':
+            raise ValueError('This order was not set to M-PESA.')
+        return JsonResponse({'reference': f'GDC-{order.id:05d}', **payment_payload(order)})
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+
+
+@csrf_exempt
+@require_POST
+def mpesa_callback(request, token):
+    expected = getattr(settings, 'MPESA_CALLBACK_TOKEN', '')
+    if not expected or not secrets.compare_digest(token, expected):
+        return JsonResponse({'error': 'Not found.'}, status=404)
+    try:
+        data = json.loads(request.body or b'{}')
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({'ResultCode': 1, 'ResultDesc': 'Invalid callback.'}, status=400)
+
+    callback = data.get('Body', {}).get('stkCallback', {})
+    checkout_request_id = str(callback.get('CheckoutRequestID', ''))
+    payment = MpesaPayment.objects.select_related('order').filter(checkout_request_id=checkout_request_id).first()
+    if not payment:
+        return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Accepted'})
+
+    result_code = str(callback.get('ResultCode', ''))
+    result_message = str(callback.get('ResultDesc', ''))[:300]
+    payment.raw_callback = data
+    payment.result_code = result_code
+    payment.result_message = result_message
+
+    if result_code == '0':
+        metadata = callback_metadata(callback)
+        try:
+            paid_amount = Decimal(str(metadata.get('Amount')))
+        except Exception:
+            paid_amount = Decimal('-1')
+        if paid_amount != payment.amount:
+            payment.status = 'failed'
+            payment.result_message = 'Payment callback amount did not match the expected M-PESA charge.'
+            payment.completed_at = timezone.now()
+        else:
+            payment.status = 'paid'
+            payment.receipt = str(metadata.get('MpesaReceiptNumber', ''))[:80]
+            payment.completed_at = parse_transaction_date(metadata.get('TransactionDate')) or timezone.now()
+    else:
+        payment.status = 'cancelled' if result_code == '1032' else 'failed'
+        payment.completed_at = timezone.now()
+
+    payment.save(update_fields=['status', 'receipt', 'result_code', 'result_message', 'completed_at', 'raw_callback'])
+    return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Accepted'})

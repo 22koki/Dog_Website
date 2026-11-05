@@ -9,7 +9,8 @@ A playful Django storefront for dogs and their people: dog profiles, food, toys,
 - Product search, category, dog-size, life-stage and price controls, richer product details, related-product suggestions, saved favourites and a persistent shopping bag. Favourites and the bag are saved in this browser; no account is required.
 - An interactive Build My Dog Box experience lets shoppers choose food, play, care and walk items, see a live total, use a Surprise Me picker, persist the box locally and add the completed bundle to the existing bag in one click.
 - Richer sample dog profiles with compatibility/health verification prompts, plus detailed enquiry dialogs.
-- A cart free-delivery progress meter, add-on recommendations and a checkout request flow with delivery/pickup and payment-preference choices.
+- A cart free-delivery progress meter, add-on recommendations and a checkout request flow with delivery/pickup and payment choices.
+- Daraja-ready M-PESA STK Push after staff confirmation, with persisted Pending/Paid/Failed/Cancelled states, receipt storage, callback amount validation and payment status inside order tracking.
 - Clearly labelled demo review cards for storefront design; replace them with verified customer reviews before launch.
 - Responsive mobile navigation and accessible dialogs throughout.
 - Private order tracking using both the `GDC-xxxxx` reference and the order email, with a visual status timeline from requested through delivery/completion.
@@ -39,7 +40,7 @@ Create a staff login using manage.py createsuperuser, then manage products, dogs
 
 Seeded listings, prices and dog profiles are samples. The real product photographs are representative images for the sample catalogue. Replace the listings and photographs with your actual inventory before launch. The repeatable seed command preserves existing entries.
 
-Orders are requests awaiting staff confirmation. Staff can move them through Requested, Confirmed, Preparing, Out for delivery, Completed or Cancelled, and customers can check the current status with their reference plus order email. Prices are calculated by the server. Customers can choose delivery or pickup and select M-PESA-after-confirmation, cash-on-delivery or pay-on-pickup where appropriate. These are payment preferences only: the site does not send an M-PESA STK push, reserve inventory, charge money or automatically send notifications. Staff must confirm availability, delivery and payment. Dog enquiries are saved for staff review.
+Orders are requests awaiting staff confirmation. Staff can move them through Requested, Confirmed, Preparing, Out for delivery, Completed or Cancelled, and customers can check the current status with their reference plus order email. Prices are calculated by the server. Customers can choose delivery or pickup and select M-PESA-after-confirmation, cash-on-delivery or pay-on-pickup where appropriate. M-PESA can send a real STK Push once Daraja credentials and a public HTTPS callback are configured. The STK button stays locked while an order is only Requested, so payment is collected only after staff confirms stock/delivery. Cash-on-delivery and pay-on-pickup remain manual. Staff must confirm availability, delivery and payment. Dog enquiries are saved for staff review.
 
 ## Validation
 
@@ -81,3 +82,39 @@ $env:GOOD_DOG_WHATSAPP_NUMBER="2547XXXXXXXX"
 ```
 
 Then start Django normally. When the variable is present, the storefront shows a WhatsApp contact button and order-specific WhatsApp links. The links open WhatsApp with a prefilled message; they do not send anything automatically.
+
+
+## M-PESA Daraja setup
+
+The code contains no Safaricom secrets. Configure them as environment variables. Start in sandbox:
+
+```powershell
+$env:MPESA_ENVIRONMENT="sandbox"
+$env:MPESA_CONSUMER_KEY="<Daraja consumer key>"
+$env:MPESA_CONSUMER_SECRET="<Daraja consumer secret>"
+$env:MPESA_SHORTCODE="<sandbox or business shortcode>"
+$env:MPESA_PASSKEY="<Lipa Na M-PESA Online passkey>"
+$env:MPESA_CALLBACK_TOKEN="<long-random-alphanumeric-secret>"
+$env:MPESA_CALLBACK_URL="https://YOUR-PUBLIC-HTTPS-DOMAIN/api/payments/mpesa/callback/$env:MPESA_CALLBACK_TOKEN/"
+$env:MPESA_TRANSACTION_TYPE="CustomerPayBillOnline"
+```
+
+Then:
+
+```powershell
+.\.venv\Scripts\python.exe dog-website\manage.py migrate
+.\.venv\Scripts\python.exe dog-website\manage.py runserver
+```
+
+The callback cannot be `localhost`; Safaricom must be able to reach it over public HTTPS. For deployed testing, point `MPESA_CALLBACK_URL` at the deployed Django service. Keep `MPESA_CALLBACK_TOKEN`, consumer secret and passkey out of Git.
+
+Payment flow:
+
+1. Customer creates an order with M-PESA selected.
+2. Staff confirms the order in Django admin.
+3. Customer opens **Track order** using the reference and order email.
+4. **Send STK Push** becomes available.
+5. Safaricom posts the result to the secret callback URL.
+6. The site stores the result, receipt and callback payload and shows Paid/Failed/Cancelled in tracking.
+
+A successful payment does not automatically mark fulfilment Completed; payment state and delivery state intentionally remain separate.

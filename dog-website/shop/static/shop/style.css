@@ -1001,3 +1001,21 @@ html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="
   .tracking-result-head { flex-direction:column; }
   .whatsapp-bubble { display:none; }
 }
+
+
+/* M-PESA payment states inside order tracking */
+.mpesa-card { margin:18px 0; padding:17px; border-radius:17px; border:1px solid #fffaf12b; background:#433947; }
+.mpesa-card.ready { background:#eff7ec; color:var(--ink); border-color:#b7d6ad; }
+.mpesa-card.pending { background:#fff2c8; color:var(--ink); border-color:#e4c75e; }
+.mpesa-card.paid { background:#cfe8c9; color:var(--ink); border-color:#89b67c; }
+.mpesa-card.waiting { background:#514759; color:var(--cream); }
+.mpesa-card-head { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.mpesa-card-head strong { font-size:13px; }
+.mpesa-logo { display:inline-flex; align-items:center; min-height:28px; padding:5px 9px; border-radius:999px; background:#68a746; color:white; font-size:9px; font-weight:800; letter-spacing:.5px; }
+.mpesa-card p { margin:11px 0 0; font-size:11px; line-height:1.55; }
+.mpesa-card p b { font-family:var(--display); letter-spacing:.4px; }
+.mpesa-phone-label { display:grid; gap:7px; margin:13px 0; font-size:10px; font-weight:700; }
+.mpesa-phone-label input { width:100%; min-height:47px; border:1px solid #3025392c; border-radius:12px; padding:11px 13px; background:white; color:var(--ink); }
+.mpesa-pay-button { width:100%; background:#68a746; color:white; }
+.mpesa-refresh { margin-top:12px; padding:0; background:transparent; border-bottom:1px solid currentColor; font-size:10px; font-weight:700; }
+.mpesa-last-message { padding:10px 12px; border-radius:11px; background:#ffffff8f; }
