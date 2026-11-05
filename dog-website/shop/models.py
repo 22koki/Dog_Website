@@ -51,3 +51,28 @@ class Enquiry(models.Model):
     message = models.TextField(max_length=2000)
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self): return f'{self.name} — {self.dog.name}'
+
+
+class MpesaPayment(models.Model):
+    STATUSES = [
+        ('initiated', 'Initiated'),
+        ('pending', 'Waiting for customer'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    order = models.OneToOneField(Order, related_name='mpesa_payment', on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=STATUSES, default='initiated')
+    phone = models.CharField(max_length=20)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    merchant_request_id = models.CharField(max_length=120, blank=True)
+    checkout_request_id = models.CharField(max_length=120, blank=True, db_index=True)
+    receipt = models.CharField(max_length=80, blank=True)
+    result_code = models.CharField(max_length=30, blank=True)
+    result_message = models.CharField(max_length=300, blank=True)
+    initiated_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    raw_callback = models.JSONField(default=dict, blank=True)
+
+    def __str__(self):
+        return f'M-PESA {self.order_id} — {self.status}'
