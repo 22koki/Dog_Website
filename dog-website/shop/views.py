@@ -127,6 +127,7 @@ def track_order(request):
             'total': str(order.total),
             'delivery_method': order.get_delivery_method_display(),
             'payment_method': order.get_payment_method_display(),
+            'payment_method_code': order.payment_method,
             'payment': payment_payload(order),
             'items': [{'name': item.name, 'quantity': item.quantity, 'unit_price': str(item.unit_price)} for item in order.items.all()],
         })
