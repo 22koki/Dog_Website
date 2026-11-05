@@ -10,10 +10,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=8">
-  <script defer src="{% static 'shop/app.js' %}?v=7"></script>
+  <link rel="stylesheet" href="{% static 'shop/style.css' %}?v=9">
+  <script defer src="{% static 'shop/app.js' %}?v=8"></script>
 </head>
-<body data-static-root="{% get_static_prefix %}" data-whatsapp-number="{{ whatsapp_number }}">
+<body data-static-root="{% get_static_prefix %}" data-whatsapp-number="{{ whatsapp_number }}" data-mpesa-enabled="{{ mpesa_enabled|yesno:'true,false' }}">
   <a class="skip-link" href="#main">Skip to content</a>
   <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
@@ -259,14 +259,14 @@
       </div>
       <label id="address-label">Delivery address<textarea name="address" required maxlength="600" autocomplete="street-address"></textarea></label>
       <fieldset class="payment-options"><legend>How would you like to pay?</legend>
-        <label><input type="radio" name="payment_method" value="mpesa" checked><span><strong>M-PESA</strong><small>Pay after the shop confirms stock and delivery.</small></span></label>
+        <label><input type="radio" name="payment_method" value="mpesa" checked><span><strong>M-PESA</strong><small>STK Push unlocks after the shop confirms the order.</small></span></label>
         <label><input type="radio" name="payment_method" value="cod"><span><strong>Cash on delivery</strong><small>Available for delivery orders.</small></span></label>
         <label><input type="radio" name="payment_method" value="pickup"><span><strong>Pay on pickup</strong><small>Choose this when collecting your order.</small></span></label>
       </fieldset>
       <label>Order notes (optional)<textarea name="notes" maxlength="600" placeholder="Gate, landmark, dog-specific request…"></textarea></label>
       <div class="checkout-summary"><span>Order subtotal</span><strong id="checkout-total"></strong></div>
       <button class="button dark full" type="submit">Place order request <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-      <p class="muted checkout-note">M-PESA is currently a payment preference only. No STK push is sent until live payment credentials and callbacks are configured.</p>
+      <p class="muted checkout-note">M-PESA orders are created first. After staff confirms stock and delivery, use Track order to send the secure STK Push.</p>
     </form>
     <p class="form-message" id="order-message" role="status"></p>
     <div class="dialog-toast" role="status"></div>
