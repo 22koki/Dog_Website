@@ -1,6 +1,7 @@
 import base64
 import json
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from decimal import Decimal, ROUND_HALF_UP
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -20,6 +21,7 @@ def configured():
         settings.MPESA_SHORTCODE,
         settings.MPESA_PASSKEY,
         settings.MPESA_CALLBACK_URL,
+        settings.MPESA_CALLBACK_TOKEN,
     ]
     return all(str(value).strip() for value in required)
 
@@ -82,7 +84,7 @@ def stk_push(order, phone):
     if not configured():
         raise MpesaError('M-PESA is not configured on this server.')
     phone = normalize_phone(phone)
-    timestamp = timezone.localtime().strftime('%Y%m%d%H%M%S')
+    timestamp = datetime.now(ZoneInfo('Africa/Nairobi')).strftime('%Y%m%d%H%M%S')
     password = base64.b64encode(
         f'{settings.MPESA_SHORTCODE}{settings.MPESA_PASSKEY}{timestamp}'.encode('utf-8')
     ).decode('ascii')
