@@ -66,6 +66,8 @@ class StoreTests(TestCase):
     def test_mpesa_stk_success_callback_and_status(self, mocked_stk):
         created=self.post_order(self.order_data())
         reference=created.json()['reference']
+        order=Order.objects.get()
+        order.status='confirmed';order.save()
         mocked_stk.return_value=({
             'ResponseCode':'0','MerchantRequestID':'merchant-1',
             'CheckoutRequestID':'checkout-1','CustomerMessage':'Success. Request accepted for processing'
