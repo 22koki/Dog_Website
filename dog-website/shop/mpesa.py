@@ -80,6 +80,10 @@ def access_token():
     return token
 
 
+def charge_amount(total):
+    return Decimal(total).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+
+
 def stk_push(order, phone):
     if not configured():
         raise MpesaError('M-PESA is not configured on this server.')
@@ -88,7 +92,7 @@ def stk_push(order, phone):
     password = base64.b64encode(
         f'{settings.MPESA_SHORTCODE}{settings.MPESA_PASSKEY}{timestamp}'.encode('utf-8')
     ).decode('ascii')
-    amount = int(Decimal(order.total).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+    amount = int(charge_amount(order.total))
     if amount < 1:
         raise MpesaError('The M-PESA amount must be at least KSh 1.')
 
@@ -132,6 +136,6 @@ def parse_transaction_date(value):
         return None
     try:
         parsed = datetime.strptime(str(value), '%Y%m%d%H%M%S')
-        return timezone.make_aware(parsed, timezone.get_current_timezone())
+        return parsed.replace(tzinfo=ZoneInfo('Africa/Nairobi'))
     except (ValueError, TypeError):
         return None
