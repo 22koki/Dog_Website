@@ -1,7 +1,8 @@
 import json
-from django.test import TestCase, Client
+from unittest.mock import patch
+from django.test import TestCase, Client, override_settings
 from django.core.management import call_command
-from .models import Product, Dog, Order, Enquiry
+from .models import Product, Dog, Order, Enquiry, MpesaPayment
 
 class StoreTests(TestCase):
     @classmethod
@@ -53,6 +54,80 @@ class StoreTests(TestCase):
         self.assertEqual(order.get_status_display(),'Preparing')
         order.status='out_for_delivery';order.save()
         self.assertEqual(order.get_status_display(),'Out for delivery')
+
+    @override_settings(
+        MPESA_CONSUMER_KEY='key', MPESA_CONSUMER_SECRET='secret',
+        MPESA_SHORTCODE='174379', MPESA_PASSKEY='passkey',
+        MPESA_CALLBACK_URL='https://example.com/api/payments/mpesa/callback/callback-secret/',
+        MPESA_CALLBACK_TOKEN='callback-secret', MPESA_ENVIRONMENT='sandbox',
+        MPESA_TRANSACTION_TYPE='CustomerPayBillOnline',
+    )
+    @patch('shop.views.stk_push')
+    def test_mpesa_stk_success_callback_and_status(self, mocked_stk):
+        created=self.post_order(self.order_data())
+        reference=created.json()['reference']
+        mocked_stk.return_value=({
+            'ResponseCode':'0','MerchantRequestID':'merchant-1',
+            'CheckoutRequestID':'checkout-1','CustomerMessage':'Success. Request accepted for processing'
+        },'254700000000')
+        start=self.client.post('/api/payments/mpesa/initiate/',data=json.dumps({
+            'reference':reference,'email':'test@example.com','phone':'0700000000'
+        }),content_type='application/json')
+        self.assertEqual(start.status_code,201)
+        self.assertEqual(start.json()['status'],'pending')
+        payment=MpesaPayment.objects.get()
+        self.assertEqual(payment.checkout_request_id,'checkout-1')
+
+        wrong=self.client.post('/api/payments/mpesa/callback/wrong-secret/',data='{}',content_type='application/json')
+        self.assertEqual(wrong.status_code,404)
+
+        callback={'Body':{'stkCallback':{
+            'MerchantRequestID':'merchant-1','CheckoutRequestID':'checkout-1',
+            'ResultCode':0,'ResultDesc':'The service request is processed successfully.',
+            'CallbackMetadata':{'Item':[
+                {'Name':'Amount','Value':1300},
+                {'Name':'MpesaReceiptNumber','Value':'TEST123ABC'},
+                {'Name':'TransactionDate','Value':20261105095000},
+                {'Name':'PhoneNumber','Value':254700000000},
+            ]}
+        }}}
+        cb=self.client.post('/api/payments/mpesa/callback/callback-secret/',data=json.dumps(callback),content_type='application/json')
+        self.assertEqual(cb.status_code,200)
+        payment.refresh_from_db()
+        self.assertEqual(payment.status,'paid')
+        self.assertEqual(payment.receipt,'TEST123ABC')
+
+        status=self.client.post('/api/payments/mpesa/status/',data=json.dumps({
+            'reference':reference,'email':'test@example.com'
+        }),content_type='application/json')
+        self.assertEqual(status.status_code,200)
+        self.assertEqual(status.json()['status'],'paid')
+        self.assertEqual(status.json()['receipt'],'TEST123ABC')
+
+        tracked=self.client.post('/api/orders/track/',data=json.dumps({
+            'reference':reference,'email':'test@example.com'
+        }),content_type='application/json')
+        self.assertEqual(tracked.json()['payment']['status'],'paid')
+
+    @override_settings(MPESA_CALLBACK_TOKEN='callback-secret')
+    def test_mpesa_callback_rejects_amount_mismatch_and_handles_cancel(self):
+        order=Order.objects.create(name='Test',email='pay@example.com',phone='0700000000',address='Nairobi',payment_method='mpesa',total='650.00')
+        payment=MpesaPayment.objects.create(order=order,status='pending',phone='254700000000',amount='650.00',checkout_request_id='mismatch-1')
+        mismatch={'Body':{'stkCallback':{
+            'CheckoutRequestID':'mismatch-1','ResultCode':0,'ResultDesc':'Success',
+            'CallbackMetadata':{'Item':[{'Name':'Amount','Value':1},{'Name':'MpesaReceiptNumber','Value':'BAD123'}]}
+        }}}
+        self.client.post('/api/payments/mpesa/callback/callback-secret/',data=json.dumps(mismatch),content_type='application/json')
+        payment.refresh_from_db()
+        self.assertEqual(payment.status,'failed')
+        self.assertEqual(payment.receipt,'')
+
+        payment.status='pending';payment.checkout_request_id='cancel-1';payment.save()
+        cancelled={'Body':{'stkCallback':{'CheckoutRequestID':'cancel-1','ResultCode':1032,'ResultDesc':'Request cancelled by user'}}}
+        self.client.post('/api/payments/mpesa/callback/callback-secret/',data=json.dumps(cancelled),content_type='application/json')
+        payment.refresh_from_db()
+        self.assertEqual(payment.status,'cancelled')
+
     def test_inactive_product(self):
         self.product.active=False;self.product.save()
         self.assertEqual(self.post_order(self.order_data()).status_code,400)
@@ -72,6 +147,8 @@ class StoreTests(TestCase):
         self.assertEqual(client.post('/api/orders/',data=json.dumps(self.order_data()),content_type='application/json',HTTP_X_CSRFTOKEN=response.cookies['csrftoken'].value).status_code,201)
         self.assertEqual(self.client.get('/api/orders/').status_code,405)
         self.assertEqual(self.client.get('/api/orders/track/').status_code,405)
+        self.assertEqual(self.client.get('/api/payments/mpesa/initiate/').status_code,405)
+        self.assertEqual(self.client.get('/api/payments/mpesa/status/').status_code,405)
     def test_seed_is_repeatable(self):
         call_command('seed_demo',verbosity=0)
         count=(Product.objects.count(),Dog.objects.count())
